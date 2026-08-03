@@ -1,66 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type ChatMessage = {
-  id: string;
-  session_id: string;
-  sender_label: string;
-  is_teacher: boolean;
-  body: string;
-  created_at: string;
-};
-
-export type LiveClass = {
-  id: string;
-  course_id: string;
-  started_at: string;
-  title: string;
-};
-
-export async function fetchLiveClasses(): Promise<LiveClass[]> {
-  const { data, error } = await supabase
-    .from("sessions")
-    .select("id, course_id, started_at, courses(title)")
-    .eq("status", "live")
-    .order("started_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    course_id: row.course_id,
-    started_at: row.started_at,
-    title: (row.courses as { title: string } | null)?.title ?? "Live class",
-  }));
-}
-
-export async function fetchMessages(sessionId: string): Promise<ChatMessage[]> {
-  const { data, error } = await supabase
-    .from("messages")
-    .select("id, session_id, sender_label, is_teacher, body, created_at")
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: true })
-    .limit(200);
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function sendMessage(input: {
-  sessionId: string;
-  senderLabel: string;
-  body: string;
-}): Promise<void> {
-  const { error } = await supabase.from("messages").insert({
-    session_id: input.sessionId,
-    sender_label: input.senderLabel,
-    body: input.body,
-  });
-  if (error) throw error;
-}
-
 export type StudentCourse = {
   id: string;
   title: string;
   term: string | null;
   is_crash: boolean;
   teacher_id: string;
+};
+
+export type LiveClass = {
+  id: string;
+  course_id: string;
+  title: string;
+  mode: string;
+  pinned_message_id: string | null;
+  quiz_prompt: string | null;
+  quiz_answer_type: string | null;
+  quiz_options: string[];
+  started_at: string;
 };
 
 export async function fetchActiveCourses(): Promise<StudentCourse[]> {
@@ -71,6 +28,24 @@ export async function fetchActiveCourses(): Promise<StudentCourse[]> {
     .order("created_at", { ascending: true });
   if (error) throw error;
   return data ?? [];
+}
+
+/** The single live session of a course, if any. */
+export async function fetchLiveClass(courseId: string): Promise<LiveClass | null> {
+  const { data, error } = await supabase
+    .from("sessions")
+    .select(
+      "id, course_id, title, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, started_at",
+    )
+    .eq("course_id", courseId)
+    .eq("status", "live")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    ...data,
+    quiz_options: Array.isArray(data.quiz_options) ? (data.quiz_options as string[]) : [],
+  };
 }
 
 export async function fetchMyEnrollments(studentLabel: string) {
