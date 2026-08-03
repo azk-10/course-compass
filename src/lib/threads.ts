@@ -323,6 +323,7 @@ export async function separateMessage(input: {
   courseId: string;
   teacherId: string | null;
   studentLabel: string;
+  category?: Category;
   /** Other messages of this student still attached to the old thread. */
   stillAttached: number;
 }): Promise<Thread> {
@@ -332,7 +333,9 @@ export async function separateMessage(input: {
     teacherId: input.teacherId,
     title: input.body,
     studentLabel: input.studentLabel,
+    category: input.category ?? "question",
   });
+
 
   const { error } = await supabase
     .from("messages")
