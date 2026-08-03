@@ -296,42 +296,28 @@ function Dashboard() {
 
         {session ? (
           <>
-            {session.mode === "quiz" && session.quiz_prompt && (
-              <div className="border-b border-border bg-accent/10 px-4 py-3 sm:px-6">
-                <p className="text-[0.68rem] tracking-[0.14em] text-accent uppercase">
-                  Answer mode · {session.quiz_answer_type?.replace("_", " ")}
-                </p>
-                <p className="text-sm font-medium">{session.quiz_prompt}</p>
+            {audioAlert && (
+              <div className="flex items-center gap-2 border-b border-border bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive sm:px-6">
+                <Volume2 className="size-4" />
+                Most students say they cannot hear you — check your microphone.
               </div>
             )}
-            {session.mode === "quiz" ? (
-              <AnswerGroups
-                groups={answerGroups}
-                isLoading={messagesLoading}
-                correctId={session.pinned_message_id}
-                onMarkCorrect={(group) =>
-                  pinMutation.mutate(
-                    group.messages.some((m) => m.id === session.pinned_message_id)
-                      ? null
-                      : group.representativeId,
-                  )
-                }
-              />
-            ) : (
-              <ThreadBoard
-                stats={threadStats}
-                messages={messages}
-                isLoading={threadsLoading || messagesLoading}
-              />
-            )}
-            <ModeControls
-              session={session}
-              busy={modeMutation.isPending || endMutation.isPending}
-              onMode={(mode) => modeMutation.mutate(mode)}
-              onQuiz={(input) => quizMutation.mutate(input)}
-              onEnd={() => endMutation.mutate()}
+            <ThreadBoard
+              stats={threadStats}
+              messages={messages}
+              isLoading={threadsLoading || messagesLoading}
             />
+            <div className="flex justify-end border-t border-border bg-card px-4 py-3 sm:px-6">
+              <button
+                onClick={() => endMutation.mutate()}
+                disabled={endMutation.isPending}
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-input px-4 py-2 text-sm font-semibold transition-colors hover:bg-secondary disabled:opacity-60"
+              >
+                <Square className="size-4" /> End Session
+              </button>
+            </div>
           </>
+
 
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6">
