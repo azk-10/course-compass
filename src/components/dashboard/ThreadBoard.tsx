@@ -117,8 +117,9 @@ function ThreadCard({
             </span>
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="size-3.5" />
-              {item.resolvedPct}% resolved
+              {item.resolvedPct}% got it
             </span>
+
           </p>
         </div>
         <span
