@@ -91,6 +91,8 @@ function Dashboard() {
   const { messages, isLoading: messagesLoading, connection } = useLiveMessages(session?.id ?? null);
   const online = studentsOnline(messages);
   const pinned = messages.find((message) => message.id === session?.pinned_message_id) ?? null;
+  const questionGroups = useMemo(() => groupQuestions(messages), [messages]);
+  const answerGroups = useMemo(() => groupAnswers(messages), [messages]);
 
   useEffect(() => {
     if (!activeId) return;
