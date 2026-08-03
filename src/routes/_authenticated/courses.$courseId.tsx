@@ -72,10 +72,55 @@ function CourseDashboard() {
   const [sessionTitle, setSessionTitle] = useState("");
   const [chatTab, setChatTab] = useState<ChatTab>("topics");
   const [railOpen, setRailOpen] = useState(false);
+  const [railWidth, setRailWidth] = useState(240);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [resizing, setResizing] = useState(false);
+
+  // Restore the teacher's last sidebar state (open/closed + width).
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 640px)");
+    const sync = () => setIsDesktop(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+
+    const savedOpen = localStorage.getItem("cc:rail-open");
+    setRailOpen(savedOpen === null ? window.innerWidth >= 1024 : savedOpen === "1");
+    const savedWidth = Number(localStorage.getItem("cc:rail-width"));
+    if (savedWidth >= 180 && savedWidth <= 420) setRailWidth(savedWidth);
+
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
-    setRailOpen(window.innerWidth >= 1024);
-  }, []);
+    localStorage.setItem("cc:rail-open", railOpen ? "1" : "0");
+  }, [railOpen]);
+
+  // Drag-to-resize the sidebar on pointer devices.
+  useEffect(() => {
+    if (!resizing) return;
+    const move = (event: PointerEvent) => {
+      const next = Math.min(420, Math.max(180, event.clientX));
+      setRailWidth(next);
+    };
+    const stop = () => {
+      setResizing(false);
+      setRailWidth((width) => {
+        localStorage.setItem("cc:rail-width", String(width));
+        return width;
+      });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+  }, [resizing]);
+
 
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const activeCourse = coursesQuery.data?.find((course) => course.id === courseId) ?? null;
@@ -204,12 +249,32 @@ function CourseDashboard() {
         </>
       )}
       <aside
-        className={`z-40 flex shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground transition-[width] sm:static sm:h-screen ${
-          railOpen
-            ? "fixed inset-y-0 left-0 w-60 shadow-xl sm:w-56 lg:w-72"
-            : "w-14 border-r border-sidebar-accent/40"
+        style={railOpen && isDesktop ? { width: railWidth } : undefined}
+        className={`relative z-40 flex shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground sm:static sm:h-screen ${
+          resizing ? "" : "transition-[width] duration-300 ease-out"
+        } ${
+          railOpen ? "fixed inset-y-0 left-0 w-60 shadow-xl" : "w-14 border-r border-sidebar-accent/40"
         }`}
       >
+        {railOpen && isDesktop && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            onPointerDown={(event) => {
+              event.preventDefault();
+              setResizing(true);
+            }}
+            onDoubleClick={() => {
+              setRailWidth(240);
+              localStorage.setItem("cc:rail-width", "240");
+            }}
+            className={`absolute inset-y-0 right-0 z-50 w-1.5 cursor-col-resize transition-colors ${
+              resizing ? "bg-sidebar-primary" : "hover:bg-sidebar-primary/60"
+            }`}
+          />
+        )}
+
         <div
           className={`flex items-center gap-2 py-4 font-display text-base font-semibold ${
             railOpen ? "px-4" : "flex-col px-2"
