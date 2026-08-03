@@ -154,27 +154,8 @@ function Dashboard() {
     onError: () => toast.error("Could not end the session"),
   });
 
-  const modeMutation = useMutation({
-    mutationFn: (mode: SessionMode) => setSessionMode(session!.id, mode),
-    onSuccess: invalidateSessions,
-    onError: () => toast.error("Could not switch mode"),
-  });
 
-  const quizMutation = useMutation({
-    mutationFn: (input: { prompt: string; answerType: AnswerType; options: string[] }) =>
-      setQuiz({ sessionId: session!.id, ...input }),
-    onSuccess: () => {
-      invalidateSessions();
-      toast.success("Question sent to students");
-    },
-    onError: () => toast.error("Could not push the question"),
-  });
 
-  const pinMutation = useMutation({
-    mutationFn: (messageId: string | null) => setPinnedMessage(session!.id, messageId),
-    onSuccess: invalidateSessions,
-    onError: () => toast.error("Could not highlight the message"),
-  });
 
   const thresholdMutation = useMutation({
     mutationFn: (value: number) => setResolveThreshold(session!.id, value),
