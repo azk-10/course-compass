@@ -290,22 +290,39 @@ function Dashboard() {
             {session.mode === "quiz" && session.quiz_prompt && (
               <div className="border-b border-border bg-accent/10 px-4 py-3 sm:px-6">
                 <p className="text-[0.68rem] tracking-[0.14em] text-accent uppercase">
-                  Quiz · {session.quiz_answer_type?.replace("_", " ")}
+                  Answer mode · {session.quiz_answer_type?.replace("_", " ")}
                 </p>
                 <p className="text-sm font-medium">{session.quiz_prompt}</p>
               </div>
             )}
-            <LiveFeed
-              messages={messages}
-              isLoading={messagesLoading}
-              pinnedId={session.pinned_message_id}
-              onPin={(message) =>
-                pinMutation.mutate(
-                  message.id === session.pinned_message_id ? null : message.id,
-                )
-              }
-              emptyLabel="Waiting for the first message from your class…"
-            />
+            {session.mode === "quiz" ? (
+              <AnswerGroups
+                groups={answerGroups}
+                isLoading={messagesLoading}
+                correctId={session.pinned_message_id}
+                onMarkCorrect={(group) =>
+                  pinMutation.mutate(
+                    group.messages.some((m) => m.id === session.pinned_message_id)
+                      ? null
+                      : group.representativeId,
+                  )
+                }
+              />
+            ) : (
+              <DiscussionCards
+                groups={questionGroups}
+                isLoading={messagesLoading}
+                activeId={session.pinned_message_id}
+                onDiscuss={(group) =>
+                  pinMutation.mutate(
+                    group.messages.some((m) => m.id === session.pinned_message_id)
+                      ? null
+                      : group.representativeId,
+                  )
+                }
+                emptyLabel="Waiting for your class — similar questions are merged into discussion cards automatically."
+              />
+            )}
             <ModeControls
               session={session}
               busy={modeMutation.isPending || endMutation.isPending}
@@ -314,6 +331,7 @@ function Dashboard() {
               onEnd={() => endMutation.mutate()}
             />
           </>
+
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6">
             <div className="mx-auto w-full max-w-xl space-y-6">
