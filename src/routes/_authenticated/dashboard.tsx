@@ -173,6 +173,14 @@ function Dashboard() {
     onError: () => toast.error("Could not highlight the message"),
   });
 
+  const thresholdMutation = useMutation({
+    mutationFn: (value: number) => setResolveThreshold(session!.id, value),
+    onSuccess: invalidateSessions,
+    onError: () => toast.error("Could not save the setting"),
+  });
+
+
+
   const createCourseMutation = useMutation({
     mutationFn: createCourse,
     onSuccess: (course) => {
