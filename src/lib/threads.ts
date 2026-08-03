@@ -196,8 +196,11 @@ export function buildStats(input: {
   votes: ThreadRow[];
   feedback: FeedbackRow[];
   threshold: number;
+  /** Threads the classroom health checks pushed to the very top. */
+  boosted?: string[];
 }): ThreadStats[] {
   const { threads, participants, votes, feedback, threshold } = input;
+  const boosted = new Set(input.boosted ?? []);
 
   const count = (rows: { thread_id: string }[]) => {
     const map = new Map<string, number>();
@@ -212,6 +215,7 @@ export function buildStats(input: {
 
   return threads
     .map((thread) => {
+      const category = toCategory(thread.category);
       const s = students.get(thread.id) ?? 0;
       const up = upvotes.get(thread.id) ?? 0;
       const ok = resolved.get(thread.id) ?? 0;
@@ -219,19 +223,41 @@ export function buildStats(input: {
       const answered = ok + help;
       const resolvedPct = answered ? Math.round((ok / answered) * 100) : 0;
       const helpShare = answered ? help / answered : 0;
+      const boost = boosted.has(thread.id);
 
-      const settled = thread.status === "archived" || (answered > 0 && resolvedPct >= threshold);
-      const health: ThreadHealth = settled
-        ? "settled"
-        : helpShare >= 0.6 && help >= 3
-          ? "urgent"
-          : help >= 1
-            ? "attention"
-            : "new";
+      const settled =
+        !boost && (thread.status === "archived" || (answered > 0 && resolvedPct >= threshold));
+      const health: ThreadHealth = boost
+        ? "urgent"
+        : settled
+          ? "settled"
+          : helpShare >= 0.6 && help >= 3
+            ? "urgent"
+            : help >= 1
+              ? "attention"
+              : "new";
 
-      const priority = settled ? -1 : s + up * 2 + help * 3 - ok;
+      // Spam never competes for the teacher's attention.
+      const priority =
+        category === "spam"
+          ? -1000
+          : boost
+            ? 10_000
+            : settled
+              ? -1
+              : s + up * 2 + help * 3 - ok;
 
-      return { thread, students: s, upvotes: up, resolved: ok, needHelp: help, resolvedPct, health, priority };
+      return {
+        thread,
+        category,
+        students: s,
+        upvotes: up,
+        resolved: ok,
+        needHelp: help,
+        resolvedPct,
+        health,
+        priority,
+      };
     })
     .sort(
       (a, b) =>
@@ -239,6 +265,7 @@ export function buildStats(input: {
         b.thread.last_activity_at.localeCompare(a.thread.last_activity_at),
     );
 }
+
 
 /** Best existing thread for a draft message, when it is close enough to merge. */
 export function findSimilarThread(draft: string, threads: Thread[], min = 0.45) {
