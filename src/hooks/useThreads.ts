@@ -68,10 +68,17 @@ export function useThreads(sessionId: string | null, threshold = 75, audioAlert 
   const votes = votesQuery.data ?? [];
   const feedback = feedbackQuery.data ?? [];
 
-  const stats = useMemo(
-    () => buildStats({ threads, participants, votes, feedback, threshold }),
-    [threads, participants, votes, feedback, threshold],
-  );
+  const stats = useMemo(() => {
+    const boosted = audioAlert
+      ? threads
+          .filter(
+            (thread) => toCategory(thread.category) === "technical" && isAudioIssue(thread.title),
+          )
+          .map((thread) => thread.id)
+      : [];
+    return buildStats({ threads, participants, votes, feedback, threshold, boosted });
+  }, [threads, participants, votes, feedback, threshold, audioAlert]);
+
 
   return {
     threads,
