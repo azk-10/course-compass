@@ -399,14 +399,26 @@ function Dashboard() {
       </main>
 
       <aside className="w-full shrink-0 space-y-4 border-border p-4 lg:h-screen lg:w-80 lg:overflow-y-auto lg:border-l">
-        <CurrentDiscussion message={pinned} onClear={() => pinMutation.mutate(null)} />
+        <TopThread item={topThread} />
         <StudentsOnline names={online} />
         <StudentApprovals
           enrollments={enrollments}
           pendingId={decidingId}
           onDecide={(id, status) => decideMutation.mutate({ id, status })}
         />
-        <QuickStats messages={messages} online={online.length} session={session} />
+        {session && (
+          <ThreadSettings
+            threshold={threshold}
+            disabled={thresholdMutation.isPending}
+            onChange={(value) => thresholdMutation.mutate(value)}
+          />
+        )}
+        <QuickStats
+          messages={messages}
+          online={online.length}
+          session={session}
+          stats={threadStats}
+        />
       </aside>
 
       <NewCourseDialog
