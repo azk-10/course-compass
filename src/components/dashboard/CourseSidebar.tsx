@@ -1,5 +1,39 @@
-import { GraduationCap, LogOut, Plus, BookOpen } from "lucide-react";
+import { Archive, BookOpen, GraduationCap, LogOut, Plus, Zap } from "lucide-react";
 import type { Course } from "@/lib/dashboard-data";
+
+function CourseButton({
+  course,
+  selected,
+  onSelect,
+}: {
+  course: Course;
+  selected: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const isArchived = course.status === "archived";
+  return (
+    <button
+      onClick={() => onSelect(course.id)}
+      className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+        selected ? "bg-sidebar-accent text-sidebar-accent-foreground" : "hover:bg-sidebar-accent/60"
+      } ${isArchived ? "opacity-60" : ""}`}
+    >
+      {course.is_crash ? (
+        <Zap
+          className={`mt-0.5 size-4 shrink-0 ${selected ? "text-sidebar-primary" : "opacity-60"}`}
+        />
+      ) : (
+        <BookOpen
+          className={`mt-0.5 size-4 shrink-0 ${selected ? "text-sidebar-primary" : "opacity-60"}`}
+        />
+      )}
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-medium">{course.title}</span>
+        {course.term && <span className="block truncate text-xs opacity-60">{course.term}</span>}
+      </span>
+    </button>
+  );
+}
 
 export function CourseSidebar({
   courses,
@@ -16,6 +50,9 @@ export function CourseSidebar({
   onSignOut: () => void;
   email: string;
 }) {
+  const active = courses.filter((course) => course.status !== "archived");
+  const archived = courses.filter((course) => course.status === "archived");
+
   return (
     <aside className="flex w-full shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:h-screen lg:w-72 lg:sticky lg:top-0">
       <div className="flex items-center gap-2 px-5 py-6 font-display text-base font-semibold">
@@ -40,30 +77,30 @@ export function CourseSidebar({
         {courses.length === 0 && (
           <p className="px-2 py-3 text-sm opacity-60">No courses yet.</p>
         )}
-        {courses.map((course) => {
-          const active = course.id === activeId;
-          return (
-            <button
-              key={course.id}
-              onClick={() => onSelect(course.id)}
-              className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-                active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "hover:bg-sidebar-accent/60"
-              }`}
-            >
-              <BookOpen
-                className={`mt-0.5 size-4 shrink-0 ${active ? "text-sidebar-primary" : "opacity-60"}`}
+        {active.map((course) => (
+          <CourseButton
+            key={course.id}
+            course={course}
+            selected={course.id === activeId}
+            onSelect={onSelect}
+          />
+        ))}
+
+        {archived.length > 0 && (
+          <div className="pt-4">
+            <p className="flex items-center gap-1.5 px-3 pb-1 text-[0.7rem] font-medium tracking-[0.16em] uppercase opacity-50">
+              <Archive className="size-3" /> Archived
+            </p>
+            {archived.map((course) => (
+              <CourseButton
+                key={course.id}
+                course={course}
+                selected={course.id === activeId}
+                onSelect={onSelect}
               />
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{course.title}</span>
-                {course.term && (
-                  <span className="block truncate text-xs opacity-60">{course.term}</span>
-                )}
-              </span>
-            </button>
-          );
-        })}
+            ))}
+          </div>
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border px-5 py-4">
