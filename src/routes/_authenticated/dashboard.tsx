@@ -1,18 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Archive, ArchiveRestore, Play, Trash2, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { CourseSidebar } from "@/components/dashboard/CourseSidebar";
-import { LiveFeed } from "@/components/dashboard/LiveFeed";
+import { AnswerGroups } from "@/components/dashboard/AnswerGroups";
+import { DiscussionCards } from "@/components/dashboard/DiscussionCards";
 import { ModeControls } from "@/components/dashboard/ModeControls";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
 import { CurrentDiscussion, QuickStats, StudentsOnline } from "@/components/dashboard/SessionRail";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
+import { groupAnswers, groupQuestions } from "@/lib/grouping";
 import { studentsOnline } from "@/lib/live-chat";
+
 import {
   createCourse,
   deleteCourse,
