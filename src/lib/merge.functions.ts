@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 import { localClassify, toCategory, type Category } from "@/lib/classify";
+import { textSimilarity } from "@/lib/grouping";
 
 const JudgeInput = z.object({
   draft: z.string().min(1).max(1000),
@@ -19,18 +20,34 @@ export type Verdict = {
   title: string | null;
 };
 
+/** Hard latency budget: the student must never wait for the judge. */
+const BUDGET_MS = 450;
+
 /**
  * One silent AI pass per message: it classifies the intent (question, answer,
  * technical issue, general talk or spam) and decides whether the message is the
  * SAME thing as an existing thread (typo, rephrase, shorthand) or something new.
  * Merging is deliberately conservative so the teacher never untangles a bad merge.
+ *
+ * Speed matters more than perfection here: the call runs on a fast lite model
+ * with a tight token cap and is aborted after {@link BUDGET_MS}. If it does not
+ * answer in time we fall back to the instant local classifier plus a
+ * similarity match, so a send always resolves in well under half a second.
  */
 export const classifyMessage = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => JudgeInput.parse(input))
   .handler(async ({ data }): Promise<Verdict> => {
     const fallback = (): Verdict => {
       const local = localClassify(data.draft);
-      return { ...local, threadId: null, title: null };
+      const best = data.candidates
+        .filter((c) => toCategory(c.category) === local.category)
+        .map((c) => ({ id: c.id, score: textSimilarity(data.draft, c.title) }))
+        .sort((a, b) => b.score - a.score)[0];
+      return {
+        ...local,
+        threadId: best && best.score >= 0.62 ? best.id : null,
+        title: null,
+      };
     };
 
     const key = process.env["LOVABLE_API_KEY"];
@@ -43,7 +60,11 @@ export const classifyMessage = createServerFn({ method: "POST" })
 
     try {
       const { output } = await generateText({
-        model: gateway("google/gemini-3.6-flash"),
+        model: gateway("google/gemini-3.1-flash-lite"),
+        abortSignal: AbortSignal.timeout(BUDGET_MS),
+        maxOutputTokens: 120,
+        temperature: 0,
+        maxRetries: 0,
         output: Output.object({
           schema: z.object({
             category: z.enum(["question", "answer", "technical", "general", "spam"]),
@@ -53,7 +74,7 @@ export const classifyMessage = createServerFn({ method: "POST" })
           }),
         }),
         system:
-          'You silently organise the live chat of a very large online class. Students write in English, in Urdu, or in Roman Urdu (Urdu typed with English letters, e.g. "sawal 5 samjha dain" = "explain question 5", "awaz nahi aa rahi" = "cannot hear you", "dobara samjhao" = "explain again"), and often mix languages in one sentence. Translate every message to its English meaning first, then work only from meaning — language, script, transliteration spelling variants and code-switching are NEVER reasons to treat two messages differently.\n\n1) CLASSIFY the message into exactly one category:\n- "question": the student asks the teacher to explain or clarify something.\n- "answer": the student is answering a question the teacher asked (a number, a formula, a multiple-choice letter, a short phrase).\n- "technical": audio, video, screen-share, lag or internet problems.\n- "general": classroom-relevant talk that is neither a question nor an answer (thanks, acknowledgement, a comment about the lecture).\n- "spam": repeated junk, random letters, emoji spam, off-topic chatter between students, bare greetings with no classroom value, advertisements, profanity or abuse.\nReturn "confidence" between 0 and 1 for that classification. Use a value below 0.5 ONLY when you genuinely cannot tell whether the message is a question or an answer. Technical issues and spam must always be confident (>= 0.5).\n\n2) MERGE: return threadId = the id of an existing thread that asks/says the SAME thing, or null. Spelling mistakes, shorthand (q5 = question 5), abbreviations and rephrasings count as the same. Different question numbers, different topics, different parts of a question, or a follow-up asking something new are NOT the same. Only merge into a thread of the same category. When unsure, do not merge.\n\n3) TITLE: a short neutral title (max 6 words), always written in English, describing this message\'s intent. It is used only when nothing matches.',
+          'You silently organise the live chat of a very large online class. Answer instantly and briefly. Students write in English, Urdu or Roman Urdu (Urdu in English letters: "sawal 5 samjha dain" = "explain question 5", "awaz nahi aa rahi" = "cannot hear you") and mix languages. Read for meaning; script, spelling and language are never reasons to treat two messages differently.\n\n1) CLASSIFY into one category: "question" (asks the teacher to explain), "answer" (replies to the teacher: a number, formula, letter or short phrase), "technical" (audio, video, screen share, lag, internet), "general" (relevant talk that is neither), "spam" (junk, random letters, emoji spam, student chatter, bare greetings, ads, abuse). Give confidence 0-1; use below 0.5 only when torn between question and answer. Technical and spam are always >= 0.5.\n\n2) MERGE: threadId = an existing thread saying the SAME thing, else null. Typos, shorthand (q5 = question 5) and rephrasings are the same; different question numbers, topics or follow-ups are not. Same category only. Unsure means null.\n\n3) TITLE: max 6 English words describing the intent.',
         prompt: `New message: "${data.draft}"\n\nExisting threads:\n${list}\n\nReturn JSON with category, confidence, threadId and title.`,
       });
 
@@ -68,3 +89,4 @@ export const classifyMessage = createServerFn({ method: "POST" })
       return fallback();
     }
   });
+
