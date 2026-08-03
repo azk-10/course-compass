@@ -325,18 +325,10 @@ function Dashboard() {
                 }
               />
             ) : (
-              <DiscussionCards
-                groups={questionGroups}
-                isLoading={messagesLoading}
-                activeId={session.pinned_message_id}
-                onDiscuss={(group) =>
-                  pinMutation.mutate(
-                    group.messages.some((m) => m.id === session.pinned_message_id)
-                      ? null
-                      : group.representativeId,
-                  )
-                }
-                emptyLabel="Waiting for your class — similar questions are merged into discussion cards automatically."
+              <ThreadBoard
+                stats={threadStats}
+                messages={messages}
+                isLoading={threadsLoading || messagesLoading}
               />
             )}
             <ModeControls
