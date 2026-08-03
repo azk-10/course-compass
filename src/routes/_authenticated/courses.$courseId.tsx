@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { RawChatPanel } from "@/components/dashboard/RawChatPanel";
+import { ChatTabList, RawChatList, type ChatTab } from "@/components/dashboard/RawChatPanel";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
 import {
@@ -68,6 +68,7 @@ function CourseDashboard() {
   const queryClient = useQueryClient();
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [sessionTitle, setSessionTitle] = useState("");
+  const [chatTab, setChatTab] = useState<ChatTab>("topics");
 
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const activeCourse = coursesQuery.data?.find((course) => course.id === courseId) ?? null;
@@ -184,8 +185,8 @@ function CourseDashboard() {
     connection === "live" ? "Live" : connection === "connecting" ? "Connecting…" : "Reconnecting…";
 
   return (
-    <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
-      <aside className="flex w-full shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:h-screen lg:w-80">
+    <div className="flex min-h-screen flex-row sm:h-screen sm:overflow-hidden">
+      <aside className="flex w-56 shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground sm:h-screen lg:w-72">
         <div className="flex items-center gap-2 px-5 py-5 font-display text-base font-semibold">
           <Compass className="size-5 text-sidebar-primary" />
           Course Compass
@@ -199,14 +200,20 @@ function CourseDashboard() {
         </button>
 
         <div className="px-5 pb-3">
-          <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Raw class chat</p>
+          <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Class chat</p>
           <p className="mt-1 text-xs opacity-60">
-            Everything students typed, exactly as sent — including filtered spam.
+            Pick a tab to read it in the main view — counts keep climbing live.
           </p>
         </div>
 
-        <RawChatPanel messages={messages} />
+        <ChatTabList
+          messages={messages}
+          tab={chatTab}
+          onChange={setChatTab}
+          threadCount={threadStats.length}
+        />
       </aside>
+
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
@@ -276,11 +283,15 @@ function CourseDashboard() {
                 Most students say they cannot hear you — check your microphone.
               </div>
             )}
-            <ThreadBoard
-              stats={threadStats}
-              messages={messages}
-              isLoading={threadsLoading || messagesLoading}
-            />
+            {chatTab === "topics" ? (
+              <ThreadBoard
+                stats={threadStats}
+                messages={messages}
+                isLoading={threadsLoading || messagesLoading}
+              />
+            ) : (
+              <RawChatList messages={messages} tab={chatTab} />
+            )}
             <div className="flex justify-end border-t border-border bg-card px-4 py-3 sm:px-6">
               <button
                 onClick={() => endMutation.mutate()}
@@ -349,7 +360,7 @@ function CourseDashboard() {
         )}
       </main>
 
-      <aside className="w-full shrink-0 space-y-4 border-border p-4 lg:h-screen lg:w-80 lg:overflow-y-auto lg:border-l">
+      <aside className="hidden w-72 shrink-0 space-y-4 border-border p-4 md:block md:h-screen md:overflow-y-auto md:border-l lg:w-80">
         <TopThread item={topThread} />
         <StudentsOnline names={online} />
         <StudentApprovals
