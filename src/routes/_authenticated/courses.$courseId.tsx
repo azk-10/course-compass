@@ -186,33 +186,78 @@ function CourseDashboard() {
 
   return (
     <div className="flex min-h-screen flex-row sm:h-screen sm:overflow-hidden">
-      <aside className="flex w-56 shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground sm:h-screen lg:w-72">
-        <div className="flex items-center gap-2 px-5 py-5 font-display text-base font-semibold">
-          <Compass className="size-5 text-sidebar-primary" />
-          Course Compass
+      {railOpen && (
+        <>
+          <div className="w-14 shrink-0 sm:hidden" />
+          <button
+            aria-label="Close chat tabs"
+            onClick={() => setRailOpen(false)}
+            className="fixed inset-0 z-30 bg-foreground/40 sm:hidden"
+          />
+        </>
+      )}
+      <aside
+        className={`z-40 flex shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground transition-[width] sm:static sm:h-screen ${
+          railOpen
+            ? "fixed inset-y-0 left-0 w-60 shadow-xl sm:w-56 lg:w-72"
+            : "w-14 border-r border-sidebar-accent/40"
+        }`}
+      >
+        <div
+          className={`flex items-center gap-2 py-4 font-display text-base font-semibold ${
+            railOpen ? "px-4" : "flex-col px-2"
+          }`}
+        >
+          <Compass className="size-5 shrink-0 text-sidebar-primary" />
+          {railOpen && <span className="truncate">Course Compass</span>}
+          <button
+            onClick={() => setRailOpen((open) => !open)}
+            aria-label={railOpen ? "Collapse chat tabs" : "Expand chat tabs"}
+            className={`rounded-lg p-1.5 opacity-70 transition-colors hover:bg-sidebar-accent hover:opacity-100 ${
+              railOpen ? "ml-auto" : "mt-1"
+            }`}
+          >
+            {railOpen ? (
+              <PanelLeftClose className="size-4" />
+            ) : (
+              <PanelLeftOpen className="size-4" />
+            )}
+          </button>
         </div>
 
         <button
           onClick={() => navigate({ to: "/courses" })}
-          className="mx-3 mb-3 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium opacity-80 transition-colors hover:bg-sidebar-accent hover:opacity-100"
+          aria-label="All courses"
+          title="All courses"
+          className={`mb-3 inline-flex items-center gap-2 rounded-lg py-2 text-sm font-medium opacity-80 transition-colors hover:bg-sidebar-accent hover:opacity-100 ${
+            railOpen ? "mx-3 px-3" : "mx-2 justify-center px-0"
+          }`}
         >
-          <ArrowLeft className="size-4" /> All courses
+          <ArrowLeft className="size-4 shrink-0" />
+          {railOpen && "All courses"}
         </button>
 
-        <div className="px-5 pb-3">
-          <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Class chat</p>
-          <p className="mt-1 text-xs opacity-60">
-            Pick a tab to read it in the main view — counts keep climbing live.
-          </p>
-        </div>
+        {railOpen && (
+          <div className="px-4 pb-3">
+            <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Class chat</p>
+            <p className="mt-1 text-xs opacity-60">
+              Pick a tab to read it in the main view — counts keep climbing live.
+            </p>
+          </div>
+        )}
 
         <ChatTabList
           messages={messages}
           tab={chatTab}
-          onChange={setChatTab}
+          onChange={(next) => {
+            setChatTab(next);
+            if (window.innerWidth < 640) setRailOpen(false);
+          }}
           threadCount={threadStats.length}
+          collapsed={!railOpen}
         />
       </aside>
+
 
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
