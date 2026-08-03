@@ -55,6 +55,7 @@ function Landing() {
           </Link>
           <Link
             to="/auth"
+            search={{ role: "teacher" as const }}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             Teacher sign in
@@ -76,6 +77,7 @@ function Landing() {
           </p>
           <Link
             to="/auth"
+            search={{ role: "teacher" as const }}
             className="mt-8 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-0.5"
           >
             Open your dashboard <ArrowRight className="size-4" />
