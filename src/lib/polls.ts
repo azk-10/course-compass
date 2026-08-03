@@ -1,4 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isAudioIssue, toCategory } from "@/lib/classify";
+import type { ChatMessage } from "@/lib/live-chat";
+
+
 
 /**
  * Classroom-wide health checks. They are created automatically from live chat
