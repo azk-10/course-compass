@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export type Course = {
   id: string;
   title: string;
+  join_code: string;
   term: string | null;
   accent: string;
   status: string;
@@ -14,12 +15,11 @@ export type Enrollment = {
   id: string;
   course_id: string;
   student_label: string;
+  student_email: string | null;
+  student_phone: string | null;
   status: string;
   created_at: string;
 };
-
-export type SessionMode = "question" | "quiz";
-export type AnswerType = "multiple_choice" | "number" | "short_text" | "formula";
 
 export type Session = {
   id: string;
@@ -36,7 +36,7 @@ export type Session = {
   ended_at: string | null;
 };
 
-const COURSE_FIELDS = "id, title, term, accent, status, is_crash, archived_at";
+const COURSE_FIELDS = "id, title, term, accent, status, is_crash, archived_at, join_code";
 const SESSION_FIELDS =
   "id, course_id, title, status, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, resolve_threshold, started_at, ended_at";
 
@@ -111,7 +111,7 @@ export async function deleteCourse(courseId: string): Promise<void> {
 export async function fetchEnrollments(courseId: string): Promise<Enrollment[]> {
   const { data, error } = await supabase
     .from("enrollments")
-    .select("id, course_id, student_label, status, created_at")
+    .select("id, course_id, student_label, student_email, student_phone, status, created_at")
     .eq("course_id", courseId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -182,40 +182,6 @@ export async function endSession(sessionId: string): Promise<void> {
     .from("sessions")
     .update({ status: "ended", ended_at: new Date().toISOString() })
     .eq("id", sessionId);
-  if (error) throw error;
-}
-
-export async function setSessionMode(sessionId: string, mode: SessionMode): Promise<void> {
-  const { error } = await supabase.from("sessions").update({ mode }).eq("id", sessionId);
-  if (error) throw error;
-}
-
-export async function setPinnedMessage(
-  sessionId: string,
-  messageId: string | null,
-): Promise<void> {
-  const { error } = await supabase
-    .from("sessions")
-    .update({ pinned_message_id: messageId })
-    .eq("id", sessionId);
-  if (error) throw error;
-}
-
-export async function setQuiz(input: {
-  sessionId: string;
-  prompt: string;
-  answerType: AnswerType;
-  options: string[];
-}): Promise<void> {
-  const { error } = await supabase
-    .from("sessions")
-    .update({
-      mode: "quiz",
-      quiz_prompt: input.prompt,
-      quiz_answer_type: input.answerType,
-      quiz_options: input.options,
-    })
-    .eq("id", input.sessionId);
   if (error) throw error;
 }
 

@@ -1,4 +1,5 @@
-import { Check, UserPlus, X } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Mail, Phone, UserPlus, X } from "lucide-react";
 import type { Enrollment } from "@/lib/dashboard-data";
 
 export function StudentApprovals({
@@ -34,33 +35,16 @@ export function StudentApprovals({
           {pending.length > 0 && (
             <ul className="mt-4 space-y-2">
               {pending.map((enrollment) => (
-                <li
+                <PendingRow
                   key={enrollment.id}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-secondary px-3 py-2"
-                >
-                  <span className="truncate text-sm font-medium">{enrollment.student_label}</span>
-                  <span className="flex shrink-0 gap-1.5">
-                    <button
-                      onClick={() => onDecide(enrollment.id, "approved")}
-                      disabled={pendingId === enrollment.id}
-                      aria-label={`Approve ${enrollment.student_label}`}
-                      className="rounded-md bg-success/15 p-1.5 text-success transition-opacity hover:opacity-80 disabled:opacity-50"
-                    >
-                      <Check className="size-4" />
-                    </button>
-                    <button
-                      onClick={() => onDecide(enrollment.id, "declined")}
-                      disabled={pendingId === enrollment.id}
-                      aria-label={`Decline ${enrollment.student_label}`}
-                      className="rounded-md bg-destructive/10 p-1.5 text-destructive transition-opacity hover:opacity-80 disabled:opacity-50"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </span>
-                </li>
+                  enrollment={enrollment}
+                  busy={pendingId === enrollment.id}
+                  onDecide={onDecide}
+                />
               ))}
             </ul>
           )}
+
 
           {approved.length > 0 && (
             <div className="mt-4">
@@ -82,5 +66,65 @@ export function StudentApprovals({
         </>
       )}
     </div>
+  );
+}
+
+/** Teachers approve on the name alone; contact details expand only if needed. */
+function PendingRow({
+  enrollment,
+  busy,
+  onDecide,
+}: {
+  enrollment: Enrollment;
+  busy: boolean;
+  onDecide: (id: string, status: "approved" | "declined") => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <li className="rounded-lg bg-secondary px-3 py-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <button
+          onClick={() => setOpen((value) => !value)}
+          className="flex min-w-0 items-center gap-1.5 text-left"
+        >
+          <ChevronDown
+            className={`size-3.5 shrink-0 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`}
+          />
+          <span className="truncate text-sm font-medium">{enrollment.student_label}</span>
+        </button>
+        <span className="flex shrink-0 gap-1.5">
+          <button
+            onClick={() => onDecide(enrollment.id, "approved")}
+            disabled={busy}
+            aria-label={`Approve ${enrollment.student_label}`}
+            className="rounded-md bg-success/15 p-1.5 text-success transition-opacity hover:opacity-80 disabled:opacity-50"
+          >
+            <Check className="size-4" />
+          </button>
+          <button
+            onClick={() => onDecide(enrollment.id, "declined")}
+            disabled={busy}
+            aria-label={`Decline ${enrollment.student_label}`}
+            className="rounded-md bg-destructive/10 p-1.5 text-destructive transition-opacity hover:opacity-80 disabled:opacity-50"
+          >
+            <X className="size-4" />
+          </button>
+        </span>
+      </div>
+
+      {open && (
+        <dl className="mt-2 space-y-1 border-t border-border pt-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Mail className="size-3.5 shrink-0" />
+            <span className="truncate">{enrollment.student_email ?? "No email given"}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Phone className="size-3.5 shrink-0" />
+            <span className="truncate">{enrollment.student_phone ?? "No phone given"}</span>
+          </div>
+        </dl>
+      )}
+    </li>
   );
 }

@@ -7,18 +7,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    role: search["role"] === "student" ? ("student" as const) : ("teacher" as const),
+  }),
   head: () => ({
     meta: [
-      { title: "Teacher sign in — Course Compass" },
+      { title: "Sign in — Course Compass" },
       {
         name: "description",
         content:
-          "Sign in to Course Compass to run live classroom sessions, manage grouped questions and watch response statistics update in real time.",
+          "Sign in to Course Compass. Teachers run live sessions and see merged classroom intent; students enrol with a course code and chat during class.",
       },
-      { property: "og:title", content: "Teacher sign in — Course Compass" },
+      { property: "og:title", content: "Sign in — Course Compass" },
       {
         property: "og:description",
-        content: "Sign in to run live classroom sessions and track responses in real time.",
+        content: "One account for teachers and students of very large live classes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,6 +32,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { role } = Route.useSearch();
+  const isStudent = role === "student";
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,14 +41,15 @@ function AuthPage() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
+    const go = () => navigate({ to: isStudent ? "/student" : "/courses", replace: true });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) navigate({ to: "/dashboard", replace: true });
+      if (session) go();
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isStudent]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +59,10 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { role: isStudent ? "student" : "teacher" },
+          },
         });
         if (error) throw error;
         if (!data.session) {
@@ -102,12 +111,20 @@ function AuthPage() {
       <section className="flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-sm">
           <h2 className="font-display text-2xl font-semibold">
-            {mode === "signin" ? "Welcome back" : "Create your teacher account"}
+            {mode === "signin"
+              ? "Welcome back"
+              : isStudent
+                ? "Create your student account"
+                : "Create your teacher account"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "signin"
-              ? "Sign in to open your dashboard."
-              : "We'll set up a sample course so you can explore right away."}
+              ? isStudent
+                ? "Sign in to reach your classes."
+                : "Sign in to open your courses."
+              : isStudent
+                ? "Sign in once — then enrol with your teacher's course code."
+                : "We'll set up a sample course so you can explore right away."}
           </p>
 
           <button
