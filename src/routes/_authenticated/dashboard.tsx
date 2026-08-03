@@ -195,7 +195,7 @@ function Dashboard() {
   const decideMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "approved" | "declined" }) =>
       setEnrollmentStatus(id, status),
-    onMutate: ({ id }: { id: string }) => setDecidingId(id),
+    onMutate: ({ id }) => setDecidingId(id),
     onSettled: () => setDecidingId(null),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["enrollments", activeId] }),
     onError: () => toast.error("Could not update the student"),
