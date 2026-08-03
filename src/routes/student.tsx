@@ -66,6 +66,23 @@ function StudentDashboard() {
   });
   const liveClass = liveQuery.data ?? null;
 
+  // Mode switches and "currently discussing" land instantly.
+  useEffect(() => {
+    if (!courseId) return;
+    const channel = supabase
+      .channel(`session-${courseId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sessions", filter: `course_id=eq.${courseId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["live-class", courseId] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [courseId, queryClient]);
+
+
   const requestMutation = useMutation({
     mutationFn: (course: { id: string; teacher_id: string }) =>
       requestEnrollment({
