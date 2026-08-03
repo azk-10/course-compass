@@ -1,20 +1,20 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, BarChart3, GraduationCap, Layers, Radio } from "lucide-react";
+import { ArrowRight, Compass, MessagesSquare, Pin, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lecture Pulse — Live teacher dashboard" },
+      { title: "Course Compass — A calm chat companion for Zoom classes" },
       {
         name: "description",
         content:
-          "Lecture Pulse gives teachers a course sidebar, grouped question banks, one-tap live sessions and real-time answer statistics.",
+          "Course Compass replaces Zoom chat for classes of 100–1000+ students: one live session, a fast message feed and a highlighted current discussion.",
       },
-      { property: "og:title", content: "Lecture Pulse — Live teacher dashboard" },
+      { property: "og:title", content: "Course Compass — A calm chat companion for Zoom classes" },
       {
         property: "og:description",
         content:
-          "Course sidebar, grouped questions, one-tap live sessions and real-time answer statistics.",
+          "Replace Zoom chat for very large online classes. Keep Zoom for video, run the conversation here.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -25,31 +25,31 @@ export const Route = createFileRoute("/")({
 
 const features = [
   {
-    icon: Layers,
-    title: "Grouped question banks",
-    body: "Organise prompts into warm-ups, core concepts and exit tickets per course.",
+    icon: MessagesSquare,
+    title: "Chat that feels like Zoom",
+    body: "Students just type. No search, no forms, no learning curve — every message is stored raw.",
   },
   {
-    icon: Radio,
-    title: "One-tap live sessions",
-    body: "Start a session from the dashboard header and the room is open instantly.",
+    icon: Pin,
+    title: "Currently discussing",
+    body: "Click a message and the whole class instantly sees what you are answering right now.",
   },
   {
-    icon: BarChart3,
-    title: "Real-time statistics",
-    body: "Participation, accuracy and per-question breakdowns update as answers land.",
+    icon: Zap,
+    title: "Question & Quiz modes",
+    body: "Switch one button to collect answers: multiple choice, numbers, short text or formulas.",
   },
 ];
 
 function Landing() {
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <span className="flex items-center gap-2 font-display text-lg font-semibold">
-          <GraduationCap className="size-5 text-accent" />
-          Lecture Pulse
+      <header className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6">
+        <span className="flex min-w-0 items-center gap-2 font-display text-lg font-semibold">
+          <Compass className="size-5 shrink-0 text-accent" />
+          <span className="truncate">Course Compass</span>
         </span>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4">
           <Link to="/student" className="text-sm text-muted-foreground hover:text-foreground">
             Join as student
           </Link>
@@ -60,20 +60,19 @@ function Landing() {
             Teacher sign in
           </Link>
         </div>
-
       </header>
 
       <main className="mx-auto max-w-6xl px-6 pb-24">
         <section className="py-16">
           <p className="font-display text-xs tracking-[0.2em] text-muted-foreground uppercase">
-            Classroom response, without the clutter
+            A Zoom chat companion
           </p>
           <h1 className="mt-5 max-w-3xl font-display text-5xl leading-[1.05] font-semibold sm:text-6xl">
-            The teacher dashboard that keeps up with the room.
+            Keep Zoom for video. Run the conversation here.
           </h1>
           <p className="mt-6 max-w-xl text-base/7 text-muted-foreground">
-            Pick a course from the sidebar, hit Start Session, and watch grouped questions turn
-            into live participation and accuracy numbers as your class answers.
+            Built for classes of 100 to 1000+ students. Open the dashboard beside Zoom, start a
+            session, and let the feed do the work — almost nothing to click while you teach.
           </p>
           <Link
             to="/auth"
@@ -84,11 +83,11 @@ function Landing() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-3">
-          {features.map((f) => (
-            <article key={f.title} className="panel p-6">
-              <f.icon className="size-5 text-accent" />
-              <h2 className="mt-4 font-display text-base font-semibold">{f.title}</h2>
-              <p className="mt-2 text-sm/6 text-muted-foreground">{f.body}</p>
+          {features.map((feature) => (
+            <article key={feature.title} className="panel p-6">
+              <feature.icon className="size-5 text-accent" />
+              <h2 className="mt-4 font-display text-base font-semibold">{feature.title}</h2>
+              <p className="mt-2 text-sm/6 text-muted-foreground">{feature.body}</p>
             </article>
           ))}
         </section>
