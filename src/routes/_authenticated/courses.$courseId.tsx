@@ -249,12 +249,32 @@ function CourseDashboard() {
         </>
       )}
       <aside
-        className={`z-40 flex shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground transition-[width] sm:static sm:h-screen ${
-          railOpen
-            ? "fixed inset-y-0 left-0 w-60 shadow-xl sm:w-56 lg:w-72"
-            : "w-14 border-r border-sidebar-accent/40"
+        style={railOpen && isDesktop ? { width: railWidth } : undefined}
+        className={`relative z-40 flex shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground sm:static sm:h-screen ${
+          resizing ? "" : "transition-[width] duration-300 ease-out"
+        } ${
+          railOpen ? "fixed inset-y-0 left-0 w-60 shadow-xl" : "w-14 border-r border-sidebar-accent/40"
         }`}
       >
+        {railOpen && isDesktop && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+            onPointerDown={(event) => {
+              event.preventDefault();
+              setResizing(true);
+            }}
+            onDoubleClick={() => {
+              setRailWidth(240);
+              localStorage.setItem("cc:rail-width", "240");
+            }}
+            className={`absolute inset-y-0 right-0 z-50 w-1.5 cursor-col-resize transition-colors ${
+              resizing ? "bg-sidebar-primary" : "hover:bg-sidebar-primary/60"
+            }`}
+          />
+        )}
+
         <div
           className={`flex items-center gap-2 py-4 font-display text-base font-semibold ${
             railOpen ? "px-4" : "flex-col px-2"
