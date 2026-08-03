@@ -56,8 +56,9 @@ export async function sendMessage(input: {
       is_teacher: input.isTeacher ?? false,
       student_id: input.studentId ?? null,
       thread_id: input.threadId ?? null,
-      category: input.category ?? null,
-      confidence: input.confidence ?? null,
+      category: input.category ?? undefined,
+      confidence: input.confidence ?? undefined,
+
     })
     .select(MESSAGE_FIELDS)
     .single();
