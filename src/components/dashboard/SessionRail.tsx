@@ -1,6 +1,8 @@
 import { Radio, Settings2, Users } from "lucide-react";
 
+import { toCategory } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
+
 import type { Session } from "@/lib/dashboard-data";
 import type { ThreadStats } from "@/lib/threads";
 
