@@ -360,7 +360,7 @@ function CourseDashboard() {
         )}
       </main>
 
-      <aside className="w-full shrink-0 space-y-4 border-border p-4 lg:h-screen lg:w-80 lg:overflow-y-auto lg:border-l">
+      <aside className="hidden w-72 shrink-0 space-y-4 border-border p-4 md:block md:h-screen md:overflow-y-auto md:border-l lg:w-80">
         <TopThread item={topThread} />
         <StudentsOnline names={online} />
         <StudentApprovals
