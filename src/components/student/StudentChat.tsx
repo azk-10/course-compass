@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { LiveFeed } from "@/components/dashboard/LiveFeed";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
+import { answerKey } from "@/lib/grouping";
 import { sendMessage } from "@/lib/live-chat";
 import type { LiveClass } from "@/lib/student-chat";
 
@@ -19,6 +20,13 @@ export function StudentChat({
   const { messages, isLoading, connection } = useLiveMessages(liveClass.id);
   const pinned = messages.find((message) => message.id === liveClass.pinned_message_id) ?? null;
   const quizMode = liveClass.mode === "quiz" && !!liveClass.quiz_prompt;
+  const correct = pinned && pinned.message_type === "answer" ? pinned : null;
+  const myAnswer = [...messages]
+    .reverse()
+    .find(
+      (message) => message.message_type === "answer" && message.sender_label === studentName,
+    );
+  const iAmCorrect = correct && myAnswer ? answerKey(myAnswer.body) === answerKey(correct.body) : null;
 
   const sendMutation = useMutation({
     mutationFn: (input: { body: string; type: "chat" | "answer" }) =>
@@ -62,19 +70,43 @@ export function StudentChat({
         </span>
       </header>
 
-      {pinned && (
+      {correct ? (
+        <div
+          className={`border-b border-border px-5 py-3 ${
+            iAmCorrect === null
+              ? "bg-secondary"
+              : iAmCorrect
+                ? "bg-success/12"
+                : "bg-destructive/10"
+          }`}
+        >
+          <p className="text-[0.66rem] tracking-[0.14em] text-muted-foreground uppercase">
+            Correct answer
+          </p>
+          <p className="text-sm font-medium break-words">{correct.body}</p>
+          {myAnswer && (
+            <p
+              className={`mt-1 text-xs font-medium ${iAmCorrect ? "text-success" : "text-destructive"}`}
+            >
+              Your answer “{myAnswer.body}” {iAmCorrect ? "matches" : "does not match"}.
+            </p>
+          )}
+        </div>
+      ) : (
+        pinned && (
         <div className="border-b border-border bg-accent/12 px-5 py-3">
           <p className="text-[0.66rem] tracking-[0.14em] text-accent uppercase">
             Currently discussing
           </p>
           <p className="text-sm break-words">{pinned.body}</p>
         </div>
+        )
       )}
 
       {quizMode && (
         <div className="border-b border-border bg-secondary px-5 py-3">
           <p className="text-[0.66rem] tracking-[0.14em] text-muted-foreground uppercase">
-            Quiz · {liveClass.quiz_answer_type?.replace("_", " ")}
+            Answer mode · {liveClass.quiz_answer_type?.replace("_", " ")}
           </p>
           <p className="text-sm font-medium">{liveClass.quiz_prompt}</p>
           {liveClass.quiz_answer_type === "multiple_choice" && (

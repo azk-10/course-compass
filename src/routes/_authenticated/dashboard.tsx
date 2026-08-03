@@ -1,18 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Archive, ArchiveRestore, Play, Trash2, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { CourseSidebar } from "@/components/dashboard/CourseSidebar";
-import { LiveFeed } from "@/components/dashboard/LiveFeed";
+import { AnswerGroups } from "@/components/dashboard/AnswerGroups";
+import { DiscussionCards } from "@/components/dashboard/DiscussionCards";
 import { ModeControls } from "@/components/dashboard/ModeControls";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
 import { CurrentDiscussion, QuickStats, StudentsOnline } from "@/components/dashboard/SessionRail";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
+import { groupAnswers, groupQuestions } from "@/lib/grouping";
 import { studentsOnline } from "@/lib/live-chat";
+
 import {
   createCourse,
   deleteCourse,
@@ -88,6 +91,8 @@ function Dashboard() {
   const { messages, isLoading: messagesLoading, connection } = useLiveMessages(session?.id ?? null);
   const online = studentsOnline(messages);
   const pinned = messages.find((message) => message.id === session?.pinned_message_id) ?? null;
+  const questionGroups = useMemo(() => groupQuestions(messages), [messages]);
+  const answerGroups = useMemo(() => groupAnswers(messages), [messages]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -242,7 +247,7 @@ function Dashboard() {
               {session ? session.title : "No live session"}
               {session && (
                 <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent capitalize">
-                  {session.mode === "quiz" ? "Quiz mode" : "Question mode"}
+                  {session.mode === "quiz" ? "Answer mode" : "Question mode"}
                 </span>
               )}
             </h1>
@@ -290,22 +295,39 @@ function Dashboard() {
             {session.mode === "quiz" && session.quiz_prompt && (
               <div className="border-b border-border bg-accent/10 px-4 py-3 sm:px-6">
                 <p className="text-[0.68rem] tracking-[0.14em] text-accent uppercase">
-                  Quiz · {session.quiz_answer_type?.replace("_", " ")}
+                  Answer mode · {session.quiz_answer_type?.replace("_", " ")}
                 </p>
                 <p className="text-sm font-medium">{session.quiz_prompt}</p>
               </div>
             )}
-            <LiveFeed
-              messages={messages}
-              isLoading={messagesLoading}
-              pinnedId={session.pinned_message_id}
-              onPin={(message) =>
-                pinMutation.mutate(
-                  message.id === session.pinned_message_id ? null : message.id,
-                )
-              }
-              emptyLabel="Waiting for the first message from your class…"
-            />
+            {session.mode === "quiz" ? (
+              <AnswerGroups
+                groups={answerGroups}
+                isLoading={messagesLoading}
+                correctId={session.pinned_message_id}
+                onMarkCorrect={(group) =>
+                  pinMutation.mutate(
+                    group.messages.some((m) => m.id === session.pinned_message_id)
+                      ? null
+                      : group.representativeId,
+                  )
+                }
+              />
+            ) : (
+              <DiscussionCards
+                groups={questionGroups}
+                isLoading={messagesLoading}
+                activeId={session.pinned_message_id}
+                onDiscuss={(group) =>
+                  pinMutation.mutate(
+                    group.messages.some((m) => m.id === session.pinned_message_id)
+                      ? null
+                      : group.representativeId,
+                  )
+                }
+                emptyLabel="Waiting for your class — similar questions are merged into discussion cards automatically."
+              />
+            )}
             <ModeControls
               session={session}
               busy={modeMutation.isPending || endMutation.isPending}
@@ -314,6 +336,7 @@ function Dashboard() {
               onEnd={() => endMutation.mutate()}
             />
           </>
+
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6">
             <div className="mx-auto w-full max-w-xl space-y-6">
