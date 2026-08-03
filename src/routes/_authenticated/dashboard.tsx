@@ -1,42 +1,48 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Archive, ArchiveRestore, Play, Square, Zap } from "lucide-react";
+import { Archive, ArchiveRestore, Play, Trash2, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { CourseSidebar } from "@/components/dashboard/CourseSidebar";
-import { QuestionGroups } from "@/components/dashboard/QuestionGroups";
-import { LiveStats } from "@/components/dashboard/LiveStats";
+import { LiveFeed } from "@/components/dashboard/LiveFeed";
+import { ModeControls } from "@/components/dashboard/ModeControls";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
+import { CurrentDiscussion, QuickStats, StudentsOnline } from "@/components/dashboard/SessionRail";
+import { useLiveMessages } from "@/hooks/useLiveMessages";
+import { studentsOnline } from "@/lib/live-chat";
 import {
   createCourse,
+  deleteCourse,
   endSession,
+  fetchCourses,
   fetchEnrollments,
+  fetchSessions,
   setCourseArchived,
   setEnrollmentStatus,
-  fetchCourses,
-  fetchGroups,
-  fetchLiveSession,
-  fetchResponses,
-  recordResponse,
+  setPinnedMessage,
+  setQuiz,
+  setSessionMode,
   startSession,
+  type AnswerType,
+  type SessionMode,
 } from "@/lib/dashboard-data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Teacher dashboard — Lecture Pulse" },
+      { title: "Teacher dashboard — Course Compass" },
       {
         name: "description",
         content:
-          "Manage courses, grouped questions and live class sessions with real-time response statistics.",
+          "Run your live class chat next to Zoom: one live session, a fast message feed, student approvals and a highlighted current discussion.",
       },
-      { property: "og:title", content: "Teacher dashboard — Lecture Pulse" },
+      { property: "og:title", content: "Teacher dashboard — Course Compass" },
       {
         property: "og:description",
-        content: "Courses, grouped questions and live response statistics in one place.",
+        content: "A calm live chat companion for very large online classes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -45,8 +51,6 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-const STUDENTS = ["Ada", "Bruno", "Chen", "Dara", "Eli", "Fay", "Gus", "Hana"];
-
 function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -54,6 +58,7 @@ function Dashboard() {
   const [email, setEmail] = useState("");
   const [newCourseOpen, setNewCourseOpen] = useState(false);
   const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [sessionTitle, setSessionTitle] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
@@ -62,29 +67,16 @@ function Dashboard() {
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const courses = coursesQuery.data ?? [];
   const activeId = courseId ?? courses[0]?.id ?? null;
-  const activeCourse = courses.find((c) => c.id === activeId) ?? null;
+  const activeCourse = courses.find((course) => course.id === activeId) ?? null;
   const isArchived = activeCourse?.status === "archived";
 
-  const groupsQuery = useQuery({
-    queryKey: ["groups", activeId],
-    queryFn: () => fetchGroups(activeId!),
+  const sessionsQuery = useQuery({
+    queryKey: ["sessions", activeId],
+    queryFn: () => fetchSessions(activeId!),
     enabled: !!activeId,
   });
-  const groups = groupsQuery.data ?? [];
-
-  const sessionQuery = useQuery({
-    queryKey: ["session", activeId],
-    queryFn: () => fetchLiveSession(activeId!),
-    enabled: !!activeId,
-  });
-  const session = sessionQuery.data ?? null;
-
-  const responsesQuery = useQuery({
-    queryKey: ["responses", session?.id],
-    queryFn: () => fetchResponses(session!.id),
-    enabled: !!session?.id,
-  });
-  const responses = responsesQuery.data ?? [];
+  const sessions = sessionsQuery.data ?? [];
+  const session = sessions.find((item) => item.status === "live") ?? null;
 
   const enrollmentsQuery = useQuery({
     queryKey: ["enrollments", activeId],
@@ -92,6 +84,10 @@ function Dashboard() {
     enabled: !!activeId,
   });
   const enrollments = enrollmentsQuery.data ?? [];
+
+  const { messages, isLoading: messagesLoading, connection } = useLiveMessages(session?.id ?? null);
+  const online = studentsOnline(messages);
+  const pinned = messages.find((message) => message.id === session?.pinned_message_id) ?? null;
 
   useEffect(() => {
     if (!activeId) return;
@@ -105,9 +101,7 @@ function Dashboard() {
           table: "enrollments",
           filter: `course_id=eq.${activeId}`,
         },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["enrollments", activeId] });
-        },
+        () => queryClient.invalidateQueries({ queryKey: ["enrollments", activeId] }),
       )
       .subscribe();
     return () => {
@@ -115,32 +109,18 @@ function Dashboard() {
     };
   }, [activeId, queryClient]);
 
-  useEffect(() => {
-    if (!session?.id) return;
-    const channel = supabase
-      .channel(`responses-${session.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "responses",
-          filter: `session_id=eq.${session.id}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["responses", session.id] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [session?.id, queryClient]);
+  const invalidateSessions = () =>
+    queryClient.invalidateQueries({ queryKey: ["sessions", activeId] });
 
   const startMutation = useMutation({
-    mutationFn: () => startSession(activeId!),
+    mutationFn: () =>
+      startSession({
+        courseId: activeId!,
+        title: sessionTitle.trim() || `Session ${sessions.length + 1}`,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session", activeId] });
+      setSessionTitle("");
+      invalidateSessions();
       toast.success("Session started");
     },
     onError: () => toast.error("Could not start the session"),
@@ -149,21 +129,32 @@ function Dashboard() {
   const endMutation = useMutation({
     mutationFn: () => endSession(session!.id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session", activeId] });
+      invalidateSessions();
       toast.success("Session ended");
     },
     onError: () => toast.error("Could not end the session"),
   });
 
-  const askMutation = useMutation({
-    mutationFn: (questionId: string) =>
-      recordResponse({
-        sessionId: session!.id,
-        questionId,
-        studentLabel: STUDENTS[Math.floor(Math.random() * STUDENTS.length)]!,
-        isCorrect: Math.random() > 0.35,
-      }),
-    onError: () => toast.error("Could not record the response"),
+  const modeMutation = useMutation({
+    mutationFn: (mode: SessionMode) => setSessionMode(session!.id, mode),
+    onSuccess: invalidateSessions,
+    onError: () => toast.error("Could not switch mode"),
+  });
+
+  const quizMutation = useMutation({
+    mutationFn: (input: { prompt: string; answerType: AnswerType; options: string[] }) =>
+      setQuiz({ sessionId: session!.id, ...input }),
+    onSuccess: () => {
+      invalidateSessions();
+      toast.success("Question sent to students");
+    },
+    onError: () => toast.error("Could not push the question"),
+  });
+
+  const pinMutation = useMutation({
+    mutationFn: (messageId: string | null) => setPinnedMessage(session!.id, messageId),
+    onSuccess: invalidateSessions,
+    onError: () => toast.error("Could not highlight the message"),
   });
 
   const createCourseMutation = useMutation({
@@ -185,10 +176,20 @@ function Dashboard() {
     },
     onSuccess: (archived) => {
       queryClient.invalidateQueries({ queryKey: ["courses"] });
-      queryClient.invalidateQueries({ queryKey: ["session", activeId] });
+      invalidateSessions();
       toast.success(archived ? "Course archived" : "Course restored");
     },
     onError: () => toast.error("Could not update the course"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteCourse(activeId!),
+    onSuccess: () => {
+      setCourseId(null);
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      toast.success("Course deleted with all enrolled students");
+    },
+    onError: () => toast.error("Could not delete the course"),
   });
 
   const decideMutation = useMutation({
@@ -196,9 +197,7 @@ function Dashboard() {
       setEnrollmentStatus(id, status),
     onMutate: ({ id }) => setDecidingId(id),
     onSettled: () => setDecidingId(null),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["enrollments", activeId] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["enrollments", activeId] }),
     onError: () => toast.error("Could not update the student"),
   });
 
@@ -209,8 +208,11 @@ function Dashboard() {
     navigate({ to: "/auth", replace: true });
   }
 
+  const connectionLabel =
+    connection === "live" ? "Live" : connection === "connecting" ? "Connecting…" : "Reconnecting…";
+
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
       <CourseSidebar
         courses={courses}
         activeId={activeId}
@@ -220,88 +222,166 @@ function Dashboard() {
         email={email}
       />
 
-      <main className="min-w-0 flex-1 px-5 py-8 lg:px-10">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="flex items-center gap-2 text-xs tracking-[0.16em] text-muted-foreground uppercase">
-              {activeCourse?.term ?? "Dashboard"}
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-2 text-[0.68rem] tracking-[0.14em] text-muted-foreground uppercase">
+              {activeCourse?.title ?? "Course Compass"}
               {activeCourse?.is_crash && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[0.62rem] text-foreground">
+                <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[0.62rem] tracking-normal text-foreground normal-case">
                   <Zap className="size-3 text-accent" /> Crash course
                 </span>
               )}
               {isArchived && (
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-[0.62rem] text-foreground">
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[0.62rem] tracking-normal text-foreground normal-case">
                   Archived
                 </span>
               )}
             </p>
-            <h1 className="mt-1 font-display text-3xl font-semibold">
-              {activeCourse?.title ?? "Your courses"}
+            <h1 className="mt-1 flex min-w-0 items-center gap-2 truncate font-display text-xl font-semibold">
+              {session ? session.title : "No live session"}
+              {session && (
+                <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent capitalize">
+                  {session.mode === "quiz" ? "Quiz mode" : "Question mode"}
+                </span>
+              )}
             </h1>
           </div>
 
-          <div className="flex items-center gap-2">
-          {activeCourse && (
-            <button
-              onClick={() => archiveMutation.mutate(!isArchived)}
-              disabled={archiveMutation.isPending}
-              className="inline-flex items-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary disabled:opacity-60"
-            >
-              {isArchived ? (
-                <>
-                  <ArchiveRestore className="size-4" /> Restore
-                </>
-              ) : (
-                <>
-                  <Archive className="size-4" /> Archive
-                </>
-              )}
-            </button>
-          )}
-          {session ? (
-            <button
-              onClick={() => endMutation.mutate()}
-              disabled={endMutation.isPending}
-              className="inline-flex items-center gap-2 rounded-lg border border-input bg-card px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary disabled:opacity-60"
-            >
-              <Square className="size-4" /> End session
-            </button>
-          ) : (
-            <button
-              onClick={() => startMutation.mutate()}
-              disabled={!activeId || isArchived || startMutation.isPending}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
-            >
-              <Play className="size-4" /> Start Session
-            </button>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {session && (
+              <span className="hidden items-center gap-2 text-xs text-muted-foreground sm:inline-flex">
+                {connection === "live" && <span className="live-dot" />}
+                {connectionLabel}
+              </span>
+            )}
+            {activeCourse && (
+              <>
+                <button
+                  onClick={() => archiveMutation.mutate(!isArchived)}
+                  disabled={archiveMutation.isPending}
+                  aria-label={isArchived ? "Restore course" : "Archive course"}
+                  className="rounded-lg border border-input p-2 transition-colors hover:bg-secondary disabled:opacity-60"
+                >
+                  {isArchived ? (
+                    <ArchiveRestore className="size-4" />
+                  ) : (
+                    <Archive className="size-4" />
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm("Delete this course and remove all enrolled students?"))
+                      deleteMutation.mutate();
+                  }}
+                  disabled={deleteMutation.isPending}
+                  aria-label="Delete course"
+                  className="rounded-lg border border-input p-2 text-destructive transition-colors hover:bg-secondary disabled:opacity-60"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </>
+            )}
           </div>
         </header>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_20rem]">
-          <div>
-            {groupsQuery.isLoading ? (
-              <div className="panel p-8 text-sm text-muted-foreground">Loading questions…</div>
-            ) : (
-              <QuestionGroups
-                groups={groups}
-                responses={responses}
-                liveSessionId={session?.id ?? null}
-                onAsk={(id) => askMutation.mutate(id)}
-              />
+        {session ? (
+          <>
+            {session.mode === "quiz" && session.quiz_prompt && (
+              <div className="border-b border-border bg-accent/10 px-4 py-3 sm:px-6">
+                <p className="text-[0.68rem] tracking-[0.14em] text-accent uppercase">
+                  Quiz · {session.quiz_answer_type?.replace("_", " ")}
+                </p>
+                <p className="text-sm font-medium">{session.quiz_prompt}</p>
+              </div>
             )}
-          </div>
-          <div className="space-y-6">
-            <LiveStats session={session} responses={responses} groups={groups} />
-            <StudentApprovals
-              enrollments={enrollments}
-              pendingId={decidingId}
-              onDecide={(id, status) => decideMutation.mutate({ id, status })}
+            <LiveFeed
+              messages={messages}
+              isLoading={messagesLoading}
+              pinnedId={session.pinned_message_id}
+              onPin={(message) =>
+                pinMutation.mutate(
+                  message.id === session.pinned_message_id ? null : message.id,
+                )
+              }
+              emptyLabel="Waiting for the first message from your class…"
             />
+            <ModeControls
+              session={session}
+              busy={modeMutation.isPending || endMutation.isPending}
+              onMode={(mode) => modeMutation.mutate(mode)}
+              onQuiz={(input) => quizMutation.mutate(input)}
+              onEnd={() => endMutation.mutate()}
+            />
+          </>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+            <div className="mx-auto w-full max-w-xl space-y-6">
+              <div className="panel p-6">
+                <h2 className="font-display text-lg font-semibold">Start a session</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Students in this course enter automatically once you go live. Only one session
+                  can be live at a time.
+                </p>
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    startMutation.mutate();
+                  }}
+                  className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-2"
+                >
+                  <input
+                    value={sessionTitle}
+                    onChange={(event) => setSessionTitle(event.target.value)}
+                    maxLength={60}
+                    placeholder="Day 1, Momentum Revision…"
+                    className="h-10 min-w-0 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-accent"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!activeId || isArchived || startMutation.isPending}
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
+                  >
+                    <Play className="size-4" /> Start Session
+                  </button>
+                </form>
+              </div>
+
+              <div className="panel p-6">
+                <h3 className="font-display text-sm font-semibold">Past sessions</h3>
+                {sessions.length === 0 ? (
+                  <p className="mt-3 text-sm text-muted-foreground">No sessions yet.</p>
+                ) : (
+                  <ul className="mt-3 space-y-1.5">
+                    {sessions.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-lg bg-secondary px-3 py-2 text-sm"
+                      >
+                        <span className="truncate">{item.title}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {new Date(item.started_at).toLocaleDateString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </main>
+
+      <aside className="w-full shrink-0 space-y-4 border-border p-4 lg:h-screen lg:w-80 lg:overflow-y-auto lg:border-l">
+        <CurrentDiscussion message={pinned} onClear={() => pinMutation.mutate(null)} />
+        <StudentsOnline names={online} />
+        <StudentApprovals
+          enrollments={enrollments}
+          pendingId={decidingId}
+          onDecide={(id, status) => decideMutation.mutate({ id, status })}
+        />
+        <QuickStats messages={messages} online={online.length} session={session} />
+      </aside>
 
       <NewCourseDialog
         open={newCourseOpen}

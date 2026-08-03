@@ -1,4 +1,4 @@
-import { Archive, BookOpen, GraduationCap, LogOut, Plus, Zap } from "lucide-react";
+import { Archive, BookOpen, Compass, LogOut, Plus, Zap } from "lucide-react";
 import type { Course } from "@/lib/dashboard-data";
 
 function CourseButton({
@@ -56,8 +56,8 @@ export function CourseSidebar({
   return (
     <aside className="flex w-full shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:h-screen lg:w-72 lg:sticky lg:top-0">
       <div className="flex items-center gap-2 px-5 py-6 font-display text-base font-semibold">
-        <GraduationCap className="size-5 text-sidebar-primary" />
-        Lecture Pulse
+        <Compass className="size-5 text-sidebar-primary" />
+        Course Compass
       </div>
 
       <div className="flex items-center justify-between px-5 pb-2">

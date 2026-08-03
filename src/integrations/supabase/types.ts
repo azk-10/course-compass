@@ -91,32 +91,48 @@ export type Database = {
       messages: {
         Row: {
           body: string
+          course_id: string | null
           created_at: string
           id: string
           is_teacher: boolean
+          message_type: string
           sender_label: string
           session_id: string
+          student_id: string | null
           teacher_id: string | null
         }
         Insert: {
           body: string
+          course_id?: string | null
           created_at?: string
           id?: string
           is_teacher?: boolean
+          message_type?: string
           sender_label: string
           session_id: string
+          student_id?: string | null
           teacher_id?: string | null
         }
         Update: {
           body?: string
+          course_id?: string | null
           created_at?: string
           id?: string
           is_teacher?: boolean
+          message_type?: string
           sender_label?: string
           session_id?: string
+          student_id?: string | null
           teacher_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_session_id_fkey"
             columns: ["session_id"]
@@ -144,157 +160,48 @@ export type Database = {
         }
         Relationships: []
       }
-      question_groups: {
-        Row: {
-          course_id: string
-          created_at: string
-          id: string
-          name: string
-          position: number
-          teacher_id: string
-        }
-        Insert: {
-          course_id: string
-          created_at?: string
-          id?: string
-          name: string
-          position?: number
-          teacher_id: string
-        }
-        Update: {
-          course_id?: string
-          created_at?: string
-          id?: string
-          name?: string
-          position?: number
-          teacher_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "question_groups_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      questions: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          kind: string
-          options: Json
-          points: number
-          position: number
-          prompt: string
-          teacher_id: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          kind?: string
-          options?: Json
-          points?: number
-          position?: number
-          prompt: string
-          teacher_id: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          kind?: string
-          options?: Json
-          points?: number
-          position?: number
-          prompt?: string
-          teacher_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "questions_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "question_groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      responses: {
-        Row: {
-          answer: string | null
-          id: string
-          is_correct: boolean
-          question_id: string
-          responded_at: string
-          session_id: string
-          student_label: string
-          teacher_id: string
-        }
-        Insert: {
-          answer?: string | null
-          id?: string
-          is_correct?: boolean
-          question_id: string
-          responded_at?: string
-          session_id: string
-          student_label: string
-          teacher_id: string
-        }
-        Update: {
-          answer?: string | null
-          id?: string
-          is_correct?: boolean
-          question_id?: string
-          responded_at?: string
-          session_id?: string
-          student_label?: string
-          teacher_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "responses_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "responses_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       sessions: {
         Row: {
           course_id: string
           ended_at: string | null
           id: string
+          mode: string
+          pinned_message_id: string | null
+          quiz_answer_type: string | null
+          quiz_options: Json
+          quiz_prompt: string | null
           started_at: string
           status: string
           teacher_id: string
+          title: string
         }
         Insert: {
           course_id: string
           ended_at?: string | null
           id?: string
+          mode?: string
+          pinned_message_id?: string | null
+          quiz_answer_type?: string | null
+          quiz_options?: Json
+          quiz_prompt?: string | null
           started_at?: string
           status?: string
           teacher_id: string
+          title?: string
         }
         Update: {
           course_id?: string
           ended_at?: string | null
           id?: string
+          mode?: string
+          pinned_message_id?: string | null
+          quiz_answer_type?: string | null
+          quiz_options?: Json
+          quiz_prompt?: string | null
           started_at?: string
           status?: string
           teacher_id?: string
+          title?: string
         }
         Relationships: [
           {
