@@ -7,18 +7,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    role: search["role"] === "student" ? ("student" as const) : ("teacher" as const),
+  }),
   head: () => ({
     meta: [
-      { title: "Teacher sign in — Course Compass" },
+      { title: "Sign in — Course Compass" },
       {
         name: "description",
         content:
-          "Sign in to Course Compass to run live classroom sessions, manage grouped questions and watch response statistics update in real time.",
+          "Sign in to Course Compass. Teachers run live sessions and see merged classroom intent; students enrol with a course code and chat during class.",
       },
-      { property: "og:title", content: "Teacher sign in — Course Compass" },
+      { property: "og:title", content: "Sign in — Course Compass" },
       {
         property: "og:description",
-        content: "Sign in to run live classroom sessions and track responses in real time.",
+        content: "One account for teachers and students of very large live classes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,6 +32,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { role } = Route.useSearch();
+  const isStudent = role === "student";
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,14 +41,15 @@ function AuthPage() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
+    const go = () => navigate({ to: isStudent ? "/student" : "/courses", replace: true });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) navigate({ to: "/dashboard", replace: true });
+      if (session) go();
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isStudent]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
