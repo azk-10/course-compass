@@ -62,7 +62,13 @@ export function ChatTabList({
             }`}
 
           >
-            <Icon className="size-4 shrink-0" />
+            {active && (
+              <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-sidebar-primary" />
+            )}
+            <Icon
+              className={`size-4 shrink-0 transition-transform duration-200 ${active ? "scale-110" : ""}`}
+            />
+
             {collapsed ? (
               count > 0 && (
                 <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-sidebar-primary px-1 text-[0.55rem] leading-4 font-semibold text-sidebar-primary-foreground">
