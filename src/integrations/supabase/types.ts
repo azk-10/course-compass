@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           id: string
           is_crash: boolean
+          join_code: string
           status: string
           teacher_id: string
           term: string | null
@@ -32,6 +33,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_crash?: boolean
+          join_code?: string
           status?: string
           teacher_id: string
           term?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_crash?: boolean
+          join_code?: string
           status?: string
           teacher_id?: string
           term?: string | null
@@ -56,7 +59,10 @@ export type Database = {
           created_at: string
           id: string
           status: string
+          student_email: string | null
           student_label: string
+          student_phone: string | null
+          student_user_id: string | null
           teacher_id: string
           updated_at: string
         }
@@ -65,7 +71,10 @@ export type Database = {
           created_at?: string
           id?: string
           status?: string
+          student_email?: string | null
           student_label: string
+          student_phone?: string | null
+          student_user_id?: string | null
           teacher_id: string
           updated_at?: string
         }
@@ -74,7 +83,10 @@ export type Database = {
           created_at?: string
           id?: string
           status?: string
+          student_email?: string | null
           student_label?: string
+          student_phone?: string | null
+          student_user_id?: string | null
           teacher_id?: string
           updated_at?: string
         }
@@ -250,16 +262,19 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          role: string
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
+          role?: string
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
+          role?: string
         }
         Relationships: []
       }
@@ -495,7 +510,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_course_code: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
