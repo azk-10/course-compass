@@ -12,6 +12,7 @@ export type ChatMessage = {
   session_id: string;
   course_id: string | null;
   student_id: string | null;
+  thread_id: string | null;
   sender_label: string;
   is_teacher: boolean;
   message_type: string;
@@ -20,7 +21,7 @@ export type ChatMessage = {
 };
 
 export const MESSAGE_FIELDS =
-  "id, session_id, course_id, student_id, sender_label, is_teacher, message_type, body, created_at";
+  "id, session_id, course_id, student_id, thread_id, sender_label, is_teacher, message_type, body, created_at";
 
 export async function fetchMessages(sessionId: string): Promise<ChatMessage[]> {
   const { data, error } = await supabase
@@ -40,6 +41,7 @@ export async function sendMessage(input: {
   body: string;
   isTeacher?: boolean;
   studentId?: string | null;
+  threadId?: string | null;
   messageType?: MessageType;
 }): Promise<void> {
   const { error } = await supabase.from("messages").insert({
@@ -49,6 +51,7 @@ export async function sendMessage(input: {
     body: input.body,
     is_teacher: input.isTeacher ?? false,
     student_id: input.studentId ?? null,
+    thread_id: input.threadId ?? null,
     message_type: input.messageType ?? "chat",
   });
   if (error) throw error;

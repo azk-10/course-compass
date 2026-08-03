@@ -1,0 +1,81 @@
+import { useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { supabase } from "@/integrations/supabase/client";
+import {
+  buildStats,
+  fetchFeedback,
+  fetchParticipants,
+  fetchThreads,
+  fetchVotes,
+} from "@/lib/threads";
+
+/**
+ * Live aggregate of every merged thread in a session: counts, upvotes,
+ * resolution feedback and derived priority — all updating in real time.
+ */
+export function useThreads(sessionId: string | null, threshold = 75) {
+  const queryClient = useQueryClient();
+
+  const threadsQuery = useQuery({
+    queryKey: ["threads", sessionId],
+    queryFn: () => fetchThreads(sessionId!),
+    enabled: !!sessionId,
+  });
+  const participantsQuery = useQuery({
+    queryKey: ["thread-participants", sessionId],
+    queryFn: () => fetchParticipants(sessionId!),
+    enabled: !!sessionId,
+  });
+  const votesQuery = useQuery({
+    queryKey: ["thread-votes", sessionId],
+    queryFn: () => fetchVotes(sessionId!),
+    enabled: !!sessionId,
+  });
+  const feedbackQuery = useQuery({
+    queryKey: ["thread-feedback", sessionId],
+    queryFn: () => fetchFeedback(sessionId!),
+    enabled: !!sessionId,
+  });
+
+  useEffect(() => {
+    if (!sessionId) return;
+    const tables: [string, string][] = [
+      ["threads", "threads"],
+      ["thread_participants", "thread-participants"],
+      ["thread_votes", "thread-votes"],
+      ["thread_feedback", "thread-feedback"],
+    ];
+    const channel = supabase.channel(`threads-${sessionId}`);
+    for (const [table, key] of tables) {
+      channel.on(
+        "postgres_changes",
+        { event: "*", schema: "public", table, filter: `session_id=eq.${sessionId}` },
+        () => queryClient.invalidateQueries({ queryKey: [key, sessionId] }),
+      );
+    }
+    channel.subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [sessionId, queryClient]);
+
+  const threads = threadsQuery.data ?? [];
+  const participants = participantsQuery.data ?? [];
+  const votes = votesQuery.data ?? [];
+  const feedback = feedbackQuery.data ?? [];
+
+  const stats = useMemo(
+    () => buildStats({ threads, participants, votes, feedback, threshold }),
+    [threads, participants, votes, feedback, threshold],
+  );
+
+  return {
+    threads,
+    participants,
+    votes,
+    feedback,
+    stats,
+    isLoading: threadsQuery.isLoading,
+  };
+}

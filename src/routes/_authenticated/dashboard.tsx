@@ -7,13 +7,19 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseSidebar } from "@/components/dashboard/CourseSidebar";
 import { AnswerGroups } from "@/components/dashboard/AnswerGroups";
-import { DiscussionCards } from "@/components/dashboard/DiscussionCards";
+import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import { ModeControls } from "@/components/dashboard/ModeControls";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
-import { CurrentDiscussion, QuickStats, StudentsOnline } from "@/components/dashboard/SessionRail";
+import {
+  QuickStats,
+  StudentsOnline,
+  ThreadSettings,
+  TopThread,
+} from "@/components/dashboard/SessionRail";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
-import { groupAnswers, groupQuestions } from "@/lib/grouping";
+import { useThreads } from "@/hooks/useThreads";
+import { groupAnswers } from "@/lib/grouping";
 import { studentsOnline } from "@/lib/live-chat";
 
 import {
@@ -27,6 +33,7 @@ import {
   setEnrollmentStatus,
   setPinnedMessage,
   setQuiz,
+  setResolveThreshold,
   setSessionMode,
   startSession,
   type AnswerType,
@@ -90,8 +97,12 @@ function Dashboard() {
 
   const { messages, isLoading: messagesLoading, connection } = useLiveMessages(session?.id ?? null);
   const online = studentsOnline(messages);
-  const pinned = messages.find((message) => message.id === session?.pinned_message_id) ?? null;
-  const questionGroups = useMemo(() => groupQuestions(messages), [messages]);
+  const threshold = session?.resolve_threshold ?? 75;
+  const { stats: threadStats, isLoading: threadsLoading } = useThreads(
+    session?.id ?? null,
+    threshold,
+  );
+  const topThread = threadStats.find((item) => item.health !== "settled") ?? null;
   const answerGroups = useMemo(() => groupAnswers(messages), [messages]);
 
   useEffect(() => {
@@ -161,6 +172,14 @@ function Dashboard() {
     onSuccess: invalidateSessions,
     onError: () => toast.error("Could not highlight the message"),
   });
+
+  const thresholdMutation = useMutation({
+    mutationFn: (value: number) => setResolveThreshold(session!.id, value),
+    onSuccess: invalidateSessions,
+    onError: () => toast.error("Could not save the setting"),
+  });
+
+
 
   const createCourseMutation = useMutation({
     mutationFn: createCourse,
@@ -314,18 +333,10 @@ function Dashboard() {
                 }
               />
             ) : (
-              <DiscussionCards
-                groups={questionGroups}
-                isLoading={messagesLoading}
-                activeId={session.pinned_message_id}
-                onDiscuss={(group) =>
-                  pinMutation.mutate(
-                    group.messages.some((m) => m.id === session.pinned_message_id)
-                      ? null
-                      : group.representativeId,
-                  )
-                }
-                emptyLabel="Waiting for your class — similar questions are merged into discussion cards automatically."
+              <ThreadBoard
+                stats={threadStats}
+                messages={messages}
+                isLoading={threadsLoading || messagesLoading}
               />
             )}
             <ModeControls
@@ -396,14 +407,26 @@ function Dashboard() {
       </main>
 
       <aside className="w-full shrink-0 space-y-4 border-border p-4 lg:h-screen lg:w-80 lg:overflow-y-auto lg:border-l">
-        <CurrentDiscussion message={pinned} onClear={() => pinMutation.mutate(null)} />
+        <TopThread item={topThread} />
         <StudentsOnline names={online} />
         <StudentApprovals
           enrollments={enrollments}
           pendingId={decidingId}
           onDecide={(id, status) => decideMutation.mutate({ id, status })}
         />
-        <QuickStats messages={messages} online={online.length} session={session} />
+        {session && (
+          <ThreadSettings
+            threshold={threshold}
+            disabled={thresholdMutation.isPending}
+            onChange={(value) => thresholdMutation.mutate(value)}
+          />
+        )}
+        <QuickStats
+          messages={messages}
+          online={online.length}
+          session={session}
+          stats={threadStats}
+        />
       </aside>
 
       <NewCourseDialog

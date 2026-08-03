@@ -204,6 +204,14 @@ function jaccard(a: Set<string>, b: Set<string>) {
   return shared / (a.size + b.size - shared);
 }
 
+/** 0–1 meaning overlap between two free-form messages. */
+export function textSimilarity(a: string, b: string): number {
+  const left = questionSignature(a);
+  const right = questionSignature(b);
+  if (left.key && right.key) return left.key === right.key ? 1 : 0;
+  return jaccard(left.set, right.set);
+}
+
 /* --------------------------------- answers -------------------------------- */
 
 const FORMULA_WORDS: Record<string, string> = {

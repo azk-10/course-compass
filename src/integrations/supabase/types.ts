@@ -100,6 +100,7 @@ export type Database = {
           session_id: string
           student_id: string | null
           teacher_id: string | null
+          thread_id: string | null
         }
         Insert: {
           body: string
@@ -112,6 +113,7 @@ export type Database = {
           session_id: string
           student_id?: string | null
           teacher_id?: string | null
+          thread_id?: string | null
         }
         Update: {
           body?: string
@@ -124,6 +126,7 @@ export type Database = {
           session_id?: string
           student_id?: string | null
           teacher_id?: string | null
+          thread_id?: string | null
         }
         Relationships: [
           {
@@ -138,6 +141,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
             referencedColumns: ["id"]
           },
         ]
@@ -170,6 +180,7 @@ export type Database = {
           quiz_answer_type: string | null
           quiz_options: Json
           quiz_prompt: string | null
+          resolve_threshold: number
           started_at: string
           status: string
           teacher_id: string
@@ -184,6 +195,7 @@ export type Database = {
           quiz_answer_type?: string | null
           quiz_options?: Json
           quiz_prompt?: string | null
+          resolve_threshold?: number
           started_at?: string
           status?: string
           teacher_id: string
@@ -198,6 +210,7 @@ export type Database = {
           quiz_answer_type?: string | null
           quiz_options?: Json
           quiz_prompt?: string | null
+          resolve_threshold?: number
           started_at?: string
           status?: string
           teacher_id?: string
@@ -209,6 +222,174 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          state: string
+          student_label: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          state?: string
+          student_label: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          state?: string
+          student_label?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_feedback_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_feedback_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_participants: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          student_label?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_votes: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          student_label?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_votes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_votes_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      threads: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          id: string
+          last_activity_at: string
+          session_id: string
+          status: string
+          teacher_id: string | null
+          title: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          session_id: string
+          status?: string
+          teacher_id?: string | null
+          title: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          session_id?: string
+          status?: string
+          teacher_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "threads_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "threads_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
         ]
