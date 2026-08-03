@@ -92,6 +92,7 @@ export async function createThread(input: {
   teacherId: string | null;
   title: string;
   studentLabel: string;
+  category?: Category;
 }): Promise<Thread> {
   const { data, error } = await supabase
     .from("threads")
@@ -100,7 +101,9 @@ export async function createThread(input: {
       course_id: input.courseId,
       teacher_id: input.teacherId,
       title: input.title.slice(0, 160),
+      category: input.category ?? "question",
     })
+
     .select(THREAD_FIELDS)
     .single();
   if (error) throw error;
