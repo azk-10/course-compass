@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { GraduationCap, Loader2 } from "lucide-react";
+import { Compass, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -9,13 +9,13 @@ import { lovable } from "@/integrations/lovable/index";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Teacher sign in — Lecture Pulse" },
+      { title: "Teacher sign in — Course Compass" },
       {
         name: "description",
         content:
-          "Sign in to Lecture Pulse to run live classroom sessions, manage grouped questions and watch response statistics update in real time.",
+          "Sign in to Course Compass to run live classroom sessions, manage grouped questions and watch response statistics update in real time.",
       },
-      { property: "og:title", content: "Teacher sign in — Lecture Pulse" },
+      { property: "og:title", content: "Teacher sign in — Course Compass" },
       {
         property: "og:description",
         content: "Sign in to run live classroom sessions and track responses in real time.",
@@ -84,8 +84,8 @@ function AuthPage() {
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       <section className="hidden flex-col justify-between bg-sidebar p-12 text-sidebar-foreground lg:flex">
         <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold">
-          <GraduationCap className="size-5 text-sidebar-primary" />
-          Lecture Pulse
+          <Compass className="size-5 text-sidebar-primary" />
+          Course Compass
         </Link>
         <div className="max-w-md">
           <h1 className="font-display text-4xl leading-tight font-semibold">
