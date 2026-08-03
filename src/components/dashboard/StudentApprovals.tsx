@@ -35,33 +35,16 @@ export function StudentApprovals({
           {pending.length > 0 && (
             <ul className="mt-4 space-y-2">
               {pending.map((enrollment) => (
-                <li
+                <PendingRow
                   key={enrollment.id}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-secondary px-3 py-2"
-                >
-                  <span className="truncate text-sm font-medium">{enrollment.student_label}</span>
-                  <span className="flex shrink-0 gap-1.5">
-                    <button
-                      onClick={() => onDecide(enrollment.id, "approved")}
-                      disabled={pendingId === enrollment.id}
-                      aria-label={`Approve ${enrollment.student_label}`}
-                      className="rounded-md bg-success/15 p-1.5 text-success transition-opacity hover:opacity-80 disabled:opacity-50"
-                    >
-                      <Check className="size-4" />
-                    </button>
-                    <button
-                      onClick={() => onDecide(enrollment.id, "declined")}
-                      disabled={pendingId === enrollment.id}
-                      aria-label={`Decline ${enrollment.student_label}`}
-                      className="rounded-md bg-destructive/10 p-1.5 text-destructive transition-opacity hover:opacity-80 disabled:opacity-50"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  </span>
-                </li>
+                  enrollment={enrollment}
+                  busy={pendingId === enrollment.id}
+                  onDecide={onDecide}
+                />
               ))}
             </ul>
           )}
+
 
           {approved.length > 0 && (
             <div className="mt-4">
