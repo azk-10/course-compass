@@ -18,39 +18,44 @@ export type Enrollment = {
   created_at: string;
 };
 
-const COURSE_FIELDS = "id, title, term, accent, status, is_crash, archived_at";
-
-export type Question = {
-  id: string;
-  prompt: string;
-  kind: string;
-  options: string[];
-  points: number;
-  position: number;
-};
-
-export type QuestionGroup = {
-  id: string;
-  name: string;
-  position: number;
-  questions: Question[];
-};
+export type SessionMode = "question" | "quiz";
+export type AnswerType = "multiple_choice" | "number" | "short_text" | "formula";
 
 export type Session = {
   id: string;
   course_id: string;
+  title: string;
   status: string;
+  mode: string;
+  pinned_message_id: string | null;
+  quiz_prompt: string | null;
+  quiz_answer_type: string | null;
+  quiz_options: string[];
   started_at: string;
   ended_at: string | null;
 };
 
-export type ResponseRow = {
-  id: string;
-  question_id: string;
-  student_label: string;
-  is_correct: boolean;
-  responded_at: string;
-};
+const COURSE_FIELDS = "id, title, term, accent, status, is_crash, archived_at";
+const SESSION_FIELDS =
+  "id, course_id, title, status, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, started_at, ended_at";
+
+type RawSession = Omit<Session, "quiz_options"> & { quiz_options: unknown };
+
+function toSession(row: RawSession): Session {
+  return {
+    ...row,
+    quiz_options: Array.isArray(row.quiz_options) ? (row.quiz_options as string[]) : [],
+  };
+}
+
+async function requireUserId(): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  const id = data.user?.id;
+  if (!id) throw new Error("Not signed in");
+  return id;
+}
+
+/* ---------------------------------- courses --------------------------------- */
 
 export async function fetchCourses(): Promise<Course[]> {
   const { data, error } = await supabase
@@ -67,13 +72,11 @@ export async function createCourse(input: {
   accent: string;
   isCrash: boolean;
 }): Promise<Course> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
-  if (!userId) throw new Error("Not signed in");
+  const teacherId = await requireUserId();
   const { data, error } = await supabase
     .from("courses")
     .insert({
-      teacher_id: userId,
+      teacher_id: teacherId,
       title: input.title,
       term: input.term,
       accent: input.accent,
@@ -96,6 +99,14 @@ export async function setCourseArchived(courseId: string, archived: boolean): Pr
   if (error) throw error;
 }
 
+/** Deletes the course together with its students, sessions and messages. */
+export async function deleteCourse(courseId: string): Promise<void> {
+  const { error } = await supabase.from("courses").delete().eq("id", courseId);
+  if (error) throw error;
+}
+
+/* -------------------------------- enrollments ------------------------------- */
+
 export async function fetchEnrollments(courseId: string): Promise<Enrollment[]> {
   const { data, error } = await supabase
     .from("enrollments")
@@ -114,57 +125,55 @@ export async function setEnrollmentStatus(
   if (error) throw error;
 }
 
-export async function fetchGroups(courseId: string): Promise<QuestionGroup[]> {
-  const { data, error } = await supabase
-    .from("question_groups")
-    .select("id, name, position, questions(id, prompt, kind, options, points, position)")
-    .eq("course_id", courseId)
-    .order("position", { ascending: true });
+export async function removeCourseStudents(courseId: string): Promise<void> {
+  const { error } = await supabase.from("enrollments").delete().eq("course_id", courseId);
   if (error) throw error;
-  return (data ?? []).map((group) => ({
-    id: group.id,
-    name: group.name,
-    position: group.position,
-    questions: [...((group.questions ?? []) as unknown as Question[])]
-      .map((q) => ({ ...q, options: Array.isArray(q.options) ? q.options : [] }))
-      .sort((a, b) => a.position - b.position),
-  }));
+}
+
+/* --------------------------------- sessions --------------------------------- */
+
+export async function fetchSessions(courseId: string): Promise<Session[]> {
+  const { data, error } = await supabase
+    .from("sessions")
+    .select(SESSION_FIELDS)
+    .eq("course_id", courseId)
+    .order("started_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => toSession(row as RawSession));
 }
 
 export async function fetchLiveSession(courseId: string): Promise<Session | null> {
   const { data, error } = await supabase
     .from("sessions")
-    .select("id, course_id, status, started_at, ended_at")
+    .select(SESSION_FIELDS)
     .eq("course_id", courseId)
     .eq("status", "live")
-    .order("started_at", { ascending: false })
-    .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  return data ? toSession(data as RawSession) : null;
 }
 
-export async function fetchResponses(sessionId: string): Promise<ResponseRow[]> {
-  const { data, error } = await supabase
-    .from("responses")
-    .select("id, question_id, student_label, is_correct, responded_at")
-    .eq("session_id", sessionId)
-    .order("responded_at", { ascending: true });
-  if (error) throw error;
-  return data ?? [];
-}
+export async function startSession(input: { courseId: string; title: string }): Promise<Session> {
+  const teacherId = await requireUserId();
+  // Only one session can be live at a time.
+  await supabase
+    .from("sessions")
+    .update({ status: "ended", ended_at: new Date().toISOString() })
+    .eq("teacher_id", teacherId)
+    .eq("status", "live");
 
-export async function startSession(courseId: string): Promise<Session> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
-  if (!userId) throw new Error("Not signed in");
   const { data, error } = await supabase
     .from("sessions")
-    .insert({ course_id: courseId, teacher_id: userId })
-    .select("id, course_id, status, started_at, ended_at")
+    .insert({
+      course_id: input.courseId,
+      teacher_id: teacherId,
+      title: input.title,
+      mode: "question",
+    })
+    .select(SESSION_FIELDS)
     .single();
   if (error) throw error;
-  return data;
+  return toSession(data as RawSession);
 }
 
 export async function endSession(sessionId: string): Promise<void> {
@@ -175,21 +184,36 @@ export async function endSession(sessionId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function recordResponse(input: {
+export async function setSessionMode(sessionId: string, mode: SessionMode): Promise<void> {
+  const { error } = await supabase.from("sessions").update({ mode }).eq("id", sessionId);
+  if (error) throw error;
+}
+
+export async function setPinnedMessage(
+  sessionId: string,
+  messageId: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("sessions")
+    .update({ pinned_message_id: messageId })
+    .eq("id", sessionId);
+  if (error) throw error;
+}
+
+export async function setQuiz(input: {
   sessionId: string;
-  questionId: string;
-  studentLabel: string;
-  isCorrect: boolean;
+  prompt: string;
+  answerType: AnswerType;
+  options: string[];
 }): Promise<void> {
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
-  if (!userId) throw new Error("Not signed in");
-  const { error } = await supabase.from("responses").insert({
-    session_id: input.sessionId,
-    question_id: input.questionId,
-    teacher_id: userId,
-    student_label: input.studentLabel,
-    is_correct: input.isCorrect,
-  });
+  const { error } = await supabase
+    .from("sessions")
+    .update({
+      mode: "quiz",
+      quiz_prompt: input.prompt,
+      quiz_answer_type: input.answerType,
+      quiz_options: input.options,
+    })
+    .eq("id", input.sessionId);
   if (error) throw error;
 }
