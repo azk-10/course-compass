@@ -7,13 +7,19 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CourseSidebar } from "@/components/dashboard/CourseSidebar";
 import { AnswerGroups } from "@/components/dashboard/AnswerGroups";
-import { DiscussionCards } from "@/components/dashboard/DiscussionCards";
+import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import { ModeControls } from "@/components/dashboard/ModeControls";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
-import { CurrentDiscussion, QuickStats, StudentsOnline } from "@/components/dashboard/SessionRail";
+import {
+  QuickStats,
+  StudentsOnline,
+  ThreadSettings,
+  TopThread,
+} from "@/components/dashboard/SessionRail";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
-import { groupAnswers, groupQuestions } from "@/lib/grouping";
+import { useThreads } from "@/hooks/useThreads";
+import { groupAnswers } from "@/lib/grouping";
 import { studentsOnline } from "@/lib/live-chat";
 
 import {
@@ -27,6 +33,7 @@ import {
   setEnrollmentStatus,
   setPinnedMessage,
   setQuiz,
+  setResolveThreshold,
   setSessionMode,
   startSession,
   type AnswerType,
