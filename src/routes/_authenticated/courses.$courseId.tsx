@@ -185,8 +185,8 @@ function CourseDashboard() {
     connection === "live" ? "Live" : connection === "connecting" ? "Connecting…" : "Reconnecting…";
 
   return (
-    <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
-      <aside className="flex w-full shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:h-screen lg:w-80">
+    <div className="flex min-h-screen flex-row sm:h-screen sm:overflow-hidden">
+      <aside className="flex w-56 shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground sm:h-screen lg:w-72">
         <div className="flex items-center gap-2 px-5 py-5 font-display text-base font-semibold">
           <Compass className="size-5 text-sidebar-primary" />
           Course Compass
@@ -200,14 +200,20 @@ function CourseDashboard() {
         </button>
 
         <div className="px-5 pb-3">
-          <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Raw class chat</p>
+          <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Class chat</p>
           <p className="mt-1 text-xs opacity-60">
-            Everything students typed, exactly as sent — including filtered spam.
+            Pick a tab to read it in the main view — counts keep climbing live.
           </p>
         </div>
 
-        <RawChatPanel messages={messages} />
+        <ChatTabList
+          messages={messages}
+          tab={chatTab}
+          onChange={setChatTab}
+          threadCount={threadStats.length}
+        />
       </aside>
+
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
