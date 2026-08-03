@@ -34,14 +34,16 @@ export function ChatTabList({
   tab,
   onChange,
   threadCount,
+  collapsed = false,
 }: {
   messages: ChatMessage[];
   tab: ChatTab;
   onChange: (tab: ChatTab) => void;
   threadCount: number;
+  collapsed?: boolean;
 }) {
   return (
-    <nav className="flex flex-col gap-1 px-3 pb-4">
+    <nav className={`flex flex-col gap-1 pb-4 ${collapsed ? "px-2" : "px-3"}`}>
       {CHAT_TABS.map(({ key, label, icon: Icon }) => {
         const count = key === "topics" ? threadCount : filterByTab(messages, key).length;
         const active = tab === key;
@@ -49,17 +51,31 @@ export function ChatTabList({
           <button
             key={key}
             onClick={() => onChange(key)}
-            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            title={collapsed ? `${label} (${count})` : undefined}
+            aria-label={label}
+            className={`relative inline-flex items-center gap-2 rounded-lg text-sm font-medium transition-colors ${
+              collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
+            } ${
               active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "opacity-75 hover:bg-sidebar-accent/50 hover:opacity-100"
             }`}
           >
             <Icon className="size-4 shrink-0" />
-            <span className="truncate">{label}</span>
-            <span className="ml-auto rounded-full bg-sidebar-accent px-1.5 text-[0.62rem]">
-              {count}
-            </span>
+            {collapsed ? (
+              count > 0 && (
+                <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-sidebar-primary px-1 text-[0.55rem] leading-4 font-semibold text-sidebar-primary-foreground">
+                  {count > 99 ? "99+" : count}
+                </span>
+              )
+            ) : (
+              <>
+                <span className="truncate">{label}</span>
+                <span className="ml-auto rounded-full bg-sidebar-accent px-1.5 text-[0.62rem]">
+                  {count}
+                </span>
+              </>
+            )}
           </button>
         );
       })}
