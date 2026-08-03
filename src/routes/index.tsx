@@ -49,12 +49,18 @@ function Landing() {
           <GraduationCap className="size-5 text-accent" />
           Lecture Pulse
         </span>
-        <Link
-          to="/auth"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          Teacher sign in
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link to="/student" className="text-sm text-muted-foreground hover:text-foreground">
+            Join as student
+          </Link>
+          <Link
+            to="/auth"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Teacher sign in
+          </Link>
+        </div>
+
       </header>
 
       <main className="mx-auto max-w-6xl px-6 pb-24">
