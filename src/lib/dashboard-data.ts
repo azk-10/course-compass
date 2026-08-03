@@ -5,7 +5,20 @@ export type Course = {
   title: string;
   term: string | null;
   accent: string;
+  status: string;
+  is_crash: boolean;
+  archived_at: string | null;
 };
+
+export type Enrollment = {
+  id: string;
+  course_id: string;
+  student_label: string;
+  status: string;
+  created_at: string;
+};
+
+const COURSE_FIELDS = "id, title, term, accent, status, is_crash, archived_at";
 
 export type Question = {
   id: string;
@@ -42,10 +55,63 @@ export type ResponseRow = {
 export async function fetchCourses(): Promise<Course[]> {
   const { data, error } = await supabase
     .from("courses")
-    .select("id, title, term, accent")
+    .select(COURSE_FIELDS)
     .order("created_at", { ascending: true });
   if (error) throw error;
   return data ?? [];
+}
+
+export async function createCourse(input: {
+  title: string;
+  term: string | null;
+  accent: string;
+  isCrash: boolean;
+}): Promise<Course> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) throw new Error("Not signed in");
+  const { data, error } = await supabase
+    .from("courses")
+    .insert({
+      teacher_id: userId,
+      title: input.title,
+      term: input.term,
+      accent: input.accent,
+      is_crash: input.isCrash,
+    })
+    .select(COURSE_FIELDS)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function setCourseArchived(courseId: string, archived: boolean): Promise<void> {
+  const { error } = await supabase
+    .from("courses")
+    .update({
+      status: archived ? "archived" : "active",
+      archived_at: archived ? new Date().toISOString() : null,
+    })
+    .eq("id", courseId);
+  if (error) throw error;
+}
+
+export async function fetchEnrollments(courseId: string): Promise<Enrollment[]> {
+  const { data, error } = await supabase
+    .from("enrollments")
+    .select("id, course_id, student_label, status, created_at")
+    .eq("course_id", courseId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function setEnrollmentStatus(
+  enrollmentId: string,
+  status: "approved" | "declined",
+): Promise<void> {
+  const { error } = await supabase.from("enrollments").update({ status }).eq("id", enrollmentId);
+  if (error) throw error;
 }
 
 export async function fetchGroups(courseId: string): Promise<QuestionGroup[]> {
