@@ -111,12 +111,20 @@ function AuthPage() {
       <section className="flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-sm">
           <h2 className="font-display text-2xl font-semibold">
-            {mode === "signin" ? "Welcome back" : "Create your teacher account"}
+            {mode === "signin"
+              ? "Welcome back"
+              : isStudent
+                ? "Create your student account"
+                : "Create your teacher account"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "signin"
-              ? "Sign in to open your dashboard."
-              : "We'll set up a sample course so you can explore right away."}
+              ? isStudent
+                ? "Sign in to reach your classes."
+                : "Sign in to open your courses."
+              : isStudent
+                ? "Sign in once — then enrol with your teacher's course code."
+                : "We'll set up a sample course so you can explore right away."}
           </p>
 
           <button
