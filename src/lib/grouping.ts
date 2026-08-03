@@ -271,8 +271,8 @@ function build(key: string, label: string, messages: ChatMessage[]): MessageGrou
   }
   const students = new Set(sorted.map((m) => m.student_id ?? m.sender_label)).size;
   const popular = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
-  const representative =
-    sorted.find((m) => baseNormalize(m.body) === popular) ?? sorted[sorted.length - 1];
+  const last = sorted[sorted.length - 1]!;
+  const representative = sorted.find((m) => baseNormalize(m.body) === popular) ?? last;
 
   return {
     key,
@@ -281,7 +281,7 @@ function build(key: string, label: string, messages: ChatMessage[]): MessageGrou
     examples: examples.slice(0, 6),
     messages: sorted,
     representativeId: representative.id,
-    lastAt: sorted[sorted.length - 1].created_at,
+    lastAt: last.created_at,
   };
 }
 
