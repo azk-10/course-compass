@@ -44,7 +44,7 @@ export function ModeControls({
           <ModeButton
             active={quizMode}
             icon={<ListChecks className="size-4" />}
-            label="Quiz Mode"
+            label="Answer Mode"
             onClick={() => onMode("quiz")}
             disabled={busy}
           />

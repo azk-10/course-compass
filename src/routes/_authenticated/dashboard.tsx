@@ -247,7 +247,7 @@ function Dashboard() {
               {session ? session.title : "No live session"}
               {session && (
                 <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent capitalize">
-                  {session.mode === "quiz" ? "Quiz mode" : "Question mode"}
+                  {session.mode === "quiz" ? "Answer mode" : "Question mode"}
                 </span>
               )}
             </h1>

@@ -102,7 +102,7 @@ export function CurrentDiscussion({
         </div>
       ) : (
         <p className="mt-3 text-sm text-muted-foreground">
-          Click any message in the feed to highlight it for the whole class.
+          Press “Discuss” on a card to highlight that question for the whole class.
         </p>
       )}
     </div>
