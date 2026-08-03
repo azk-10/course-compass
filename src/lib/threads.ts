@@ -234,15 +234,80 @@ export function buildStats(input: {
 
 /** Best existing thread for a draft message, when it is close enough to merge. */
 export function findSimilarThread(draft: string, threads: Thread[], min = 0.45) {
-  let best: Thread | null = null;
-  let bestScore = 0;
-  for (const thread of threads) {
-    if (thread.status === "archived") continue;
-    const score = textSimilarity(draft, thread.title);
-    if (score > bestScore) {
-      bestScore = score;
-      best = thread;
-    }
-  }
-  return best && bestScore >= min ? { thread: best, score: bestScore } : null;
+  const [best] = topSimilarThreads(draft, threads, 1, min);
+  return best ?? null;
 }
+
+/** Ranked merge candidates for a draft, loose enough for the AI to arbitrate. */
+export function topSimilarThreads(draft: string, threads: Thread[], limit = 5, min = 0.2) {
+  return threads
+    .map((thread) => ({ thread, score: textSimilarity(draft, thread.title) }))
+    .filter((row) => row.score >= min)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+/** A revived thread comes back to the top instead of spawning a duplicate. */
+export async function reopenThread(threadId: string): Promise<void> {
+  await supabase
+    .from("threads")
+    .update({ status: "open", last_activity_at: new Date().toISOString() })
+    .eq("id", threadId);
+}
+
+export async function leaveThread(input: {
+  threadId: string;
+  studentLabel: string;
+}): Promise<void> {
+  await supabase
+    .from("thread_participants")
+    .delete()
+    .eq("thread_id", input.threadId)
+    .eq("student_label", input.studentLabel);
+  await supabase
+    .from("thread_votes")
+    .delete()
+    .eq("thread_id", input.threadId)
+    .eq("student_label", input.studentLabel);
+  await supabase
+    .from("thread_feedback")
+    .delete()
+    .eq("thread_id", input.threadId)
+    .eq("student_label", input.studentLabel);
+}
+
+/**
+ * The student always keeps control: pull one message out of a merged thread
+ * into its own thread, and leave the old thread if nothing else keeps them there.
+ */
+export async function separateMessage(input: {
+  messageId: string;
+  body: string;
+  fromThreadId: string | null;
+  sessionId: string;
+  courseId: string;
+  teacherId: string | null;
+  studentLabel: string;
+  /** Other messages of this student still attached to the old thread. */
+  stillAttached: number;
+}): Promise<Thread> {
+  const thread = await createThread({
+    sessionId: input.sessionId,
+    courseId: input.courseId,
+    teacherId: input.teacherId,
+    title: input.body,
+    studentLabel: input.studentLabel,
+  });
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ thread_id: thread.id })
+    .eq("id", input.messageId);
+  if (error) throw error;
+
+  if (input.fromThreadId && input.stillAttached <= 0) {
+    await leaveThread({ threadId: input.fromThreadId, studentLabel: input.studentLabel });
+  }
+  return thread;
+}
+

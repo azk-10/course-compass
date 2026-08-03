@@ -72,7 +72,7 @@ export function ThreadBoard({
       {settled.length > 0 && (
         <div className="mt-6">
           <p className="text-[0.62rem] tracking-[0.14em] text-muted-foreground uppercase">
-            Auto-archived · class says resolved
+            Auto-archived · class says they got it
           </p>
           <ul className="mt-2 grid gap-2 opacity-45">
             {settled.map((item) => (
@@ -117,8 +117,9 @@ function ThreadCard({
             </span>
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="size-3.5" />
-              {item.resolvedPct}% resolved
+              {item.resolvedPct}% got it
             </span>
+
           </p>
         </div>
         <span
