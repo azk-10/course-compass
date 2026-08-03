@@ -6,6 +6,8 @@ import {
   ArchiveRestore,
   ArrowLeft,
   Compass,
+  PanelLeftClose,
+  PanelLeftOpen,
   Play,
   Square,
   Trash2,
