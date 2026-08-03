@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { RawChatPanel } from "@/components/dashboard/RawChatPanel";
+import { ChatTabList, RawChatList, type ChatTab } from "@/components/dashboard/RawChatPanel";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
 import {
@@ -68,6 +68,7 @@ function CourseDashboard() {
   const queryClient = useQueryClient();
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [sessionTitle, setSessionTitle] = useState("");
+  const [chatTab, setChatTab] = useState<ChatTab>("topics");
 
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const activeCourse = coursesQuery.data?.find((course) => course.id === courseId) ?? null;
