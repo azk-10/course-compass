@@ -1,20 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowUp, CheckCircle2, HelpCircle, Send, Sparkles, Split, Users } from "lucide-react";
+import {
+  ArrowUp,
+  CheckCircle2,
+  HelpCircle,
+  Send,
+  Sparkles,
+  Split,
+  Users,
+  Volume2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useLiveMessages } from "@/hooks/useLiveMessages";
+import { usePolls } from "@/hooks/usePolls";
 import { useThreads } from "@/hooks/useThreads";
-import { answerKey } from "@/lib/grouping";
-import { sendMessage, type ChatMessage } from "@/lib/live-chat";
-import { judgeMerge } from "@/lib/merge.functions";
+import { CATEGORY_META, toCategory, type Category } from "@/lib/classify";
+import { sendMessage, setMessageCategory, studentsOnline, type ChatMessage } from "@/lib/live-chat";
+import { classifyMessage } from "@/lib/merge.functions";
+import { answerPoll, openPoll, shouldOpenAudioPoll, type Poll } from "@/lib/polls";
 import {
   createThread,
   joinThread,
   reopenThread,
   separateMessage,
   setFeedback,
+  setThreadCategory,
   setVote,
   topSimilarThreads,
   type FeedbackState,
@@ -25,10 +37,12 @@ import type { LiveClass } from "@/lib/student-chat";
 
 /** No new activity for this long → ask participants if they got it. */
 const FOLLOW_UP_MS = 75_000;
+/** Share of active students discussing a thread before others are asked to join. */
+const CONFIRM_SHARE = 0.6;
 
 /**
- * Students see a normal chat: sending is instant and merging happens
- * automatically behind the scenes. They keep full control of every message.
+ * Students see a normal chat: sending is instant, classification and merging
+ * happen silently behind the scenes. They keep full control of every message.
  */
 export function StudentChat({
   liveClass,
@@ -40,25 +54,25 @@ export function StudentChat({
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
   const [dismissed, setDismissed] = useState<string[]>([]);
+  const [unsure, setUnsure] = useState<ChatMessage | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const judge = useServerFn(judgeMerge);
+  const classify = useServerFn(classifyMessage);
 
   const { messages, isLoading, connection } = useLiveMessages(liveClass.id);
   const { threads, participants, votes, feedback, stats } = useThreads(
     liveClass.id,
     liveClass.resolve_threshold,
   );
+  const { polls, responses } = usePolls(liveClass.id);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 10_000);
     return () => clearInterval(timer);
   }, []);
 
-  const quizMode = liveClass.mode === "quiz" && !!liveClass.quiz_prompt;
   const myMessages = messages.filter(
     (message) => !message.is_teacher && message.sender_label === studentName,
   );
-  const myChats = myMessages.filter((message) => message.message_type !== "answer");
 
   const myThreadIds = useMemo(
     () =>
@@ -67,7 +81,9 @@ export function StudentChat({
       ),
     [participants, studentName],
   );
-  const myThreads = stats.filter((item) => myThreadIds.has(item.thread.id));
+  const myThreads = stats.filter(
+    (item) => myThreadIds.has(item.thread.id) && item.category !== "spam",
+  );
   const statsById = new Map(stats.map((item) => [item.thread.id, item]));
   const myVotes = new Set(
     votes.filter((row) => row.student_label === studentName).map((row) => row.thread_id),
@@ -85,25 +101,63 @@ export function StudentChat({
     queryClient.invalidateQueries({ queryKey: ["thread-feedback", liveClass.id] });
   };
 
-  /** Auto-merge: candidates are shortlisted locally, then confirmed by AI. */
+  /* --------------------- automatic classroom health checks -------------------- */
+
+  const activeStudents = Math.max(studentsOnline(messages).length, 1);
+
+  useEffect(() => {
+    if (!shouldOpenAudioPoll(messages)) return;
+    if (polls.some((poll) => poll.kind === "audio" && poll.status === "open")) return;
+    void openPoll({
+      sessionId: liveClass.id,
+      kind: "audio",
+      prompt: "Can you hear the teacher?",
+    });
+  }, [messages, polls, liveClass.id]);
+
+  useEffect(() => {
+    const popular = stats.find(
+      (item) =>
+        item.category === "question" &&
+        item.thread.status === "open" &&
+        item.students + item.upvotes >= Math.ceil(activeStudents * CONFIRM_SHARE) &&
+        item.students >= 2,
+    );
+    if (!popular) return;
+    if (polls.some((poll) => poll.thread_id === popular.thread.id)) return;
+    void openPoll({
+      sessionId: liveClass.id,
+      kind: "question_confirm",
+      threadId: popular.thread.id,
+      prompt: popular.thread.title,
+    });
+  }, [stats, polls, activeStudents, liveClass.id]);
+
+  const answeredPolls = new Set(
+    responses.filter((row) => row.student_label === studentName).map((row) => row.poll_id),
+  );
+  const activePoll =
+    polls.find((poll) => {
+      if (poll.status !== "open" || answeredPolls.has(poll.id)) return false;
+      // Never interrupt students who already joined the discussion in question.
+      if (poll.thread_id && myThreadIds.has(poll.thread_id)) return false;
+      return true;
+    }) ?? null;
+
+  /* -------------------------------- mutations ------------------------------- */
+
+  /** Auto-merge: candidates are shortlisted locally, then judged by AI. */
   const postMutation = useMutation({
     mutationFn: async (body: string) => {
       const candidates = topSimilarThreads(body, threads, 6).map((row) => ({
         id: row.thread.id,
         title: row.thread.title,
+        category: row.thread.category,
       }));
 
-      let matched: Thread | null = null;
-      let aiTitle: string | null = null;
-      if (candidates.length > 0) {
-        try {
-          const verdict = await judge({ data: { draft: body, candidates } });
-          aiTitle = verdict.title;
-          matched = threads.find((thread) => thread.id === verdict.threadId) ?? null;
-        } catch {
-          matched = null;
-        }
-      }
+      const verdict = await classify({ data: { draft: body, candidates } });
+      const category = toCategory(verdict.category);
+      const matched = threads.find((thread) => thread.id === verdict.threadId) ?? null;
 
       const thread =
         matched ??
@@ -111,8 +165,9 @@ export function StudentChat({
           sessionId: liveClass.id,
           courseId: liveClass.course_id,
           teacherId: liveClass.teacher_id ?? null,
-          title: aiTitle || body,
+          title: verdict.title || body,
           studentLabel: studentName,
+          category,
         }));
 
       if (matched) {
@@ -124,28 +179,65 @@ export function StudentChat({
         if (matched.status !== "open") await reopenThread(matched.id);
       }
 
-      await sendMessage({
+      const message = await sendMessage({
         sessionId: liveClass.id,
         courseId: liveClass.course_id,
         senderLabel: studentName,
         body,
         threadId: thread.id,
+        category,
+        confidence: verdict.confidence,
       });
+
+      return { message, category, confidence: verdict.confidence };
     },
-    onSuccess: refresh,
+    onSuccess: (result) => {
+      // Only a genuine question/answer ambiguity is worth interrupting for.
+      if (
+        result.confidence < 0.5 &&
+        (result.category === "question" ||
+          result.category === "answer" ||
+          result.category === "general")
+      ) {
+        setUnsure(result.message);
+      }
+      refresh();
+    },
     onError: (error: Error) => toast.error(error.message || "Could not send your message"),
   });
 
-  const answerMutation = useMutation({
-    mutationFn: (body: string) =>
-      sendMessage({
+  const clarifyMutation = useMutation({
+    mutationFn: async (input: { message: ChatMessage; category: Category }) => {
+      await setMessageCategory(input.message.id, input.category);
+      if (input.message.thread_id) {
+        await setThreadCategory(input.message.thread_id, input.category);
+      }
+    },
+    onSuccess: () => {
+      setUnsure(null);
+      queryClient.invalidateQueries({ queryKey: ["messages", liveClass.id] });
+      refresh();
+    },
+  });
+
+  const pollMutation = useMutation({
+    mutationFn: async (input: { poll: Poll; answer: "yes" | "no" }) => {
+      await answerPoll({
+        pollId: input.poll.id,
         sessionId: liveClass.id,
-        courseId: liveClass.course_id,
-        senderLabel: studentName,
-        body,
-        messageType: "answer",
-      }),
-    onError: (error: Error) => toast.error(error.message || "Could not send your answer"),
+        studentLabel: studentName,
+        answer: input.answer,
+      });
+      // "Yes, I have this question too" adds the student without typing.
+      if (input.poll.kind === "question_confirm" && input.poll.thread_id && input.answer === "yes") {
+        await joinThread({
+          threadId: input.poll.thread_id,
+          sessionId: liveClass.id,
+          studentLabel: studentName,
+        });
+      }
+    },
+    onSuccess: refresh,
   });
 
   const voteMutation = useMutation({
@@ -180,7 +272,8 @@ export function StudentChat({
         courseId: liveClass.course_id,
         teacherId: liveClass.teacher_id ?? null,
         studentLabel: studentName,
-        stillAttached: myChats.filter(
+        category: toCategory(message.category),
+        stillAttached: myMessages.filter(
           (row) => row.thread_id === message.thread_id && row.id !== message.id,
         ).length,
       }),
@@ -197,10 +290,6 @@ export function StudentChat({
     const body = draft.trim().slice(0, 1000);
     if (!body || postMutation.isPending) return;
     setDraft("");
-    if (quizMode) {
-      answerMutation.mutate(body);
-      return;
-    }
     postMutation.mutate(body);
   }
 
@@ -211,22 +300,15 @@ export function StudentChat({
   } as const;
   const status = statusMeta[connection];
 
-  /* Quiet thread the student joined but never rated → gentle follow-up. */
+  /* Quiet question thread the student joined but never rated → gentle follow-up. */
   const followUp =
     myThreads.find(
       (item) =>
+        item.category === "question" &&
         !myFeedback.has(item.thread.id) &&
         !dismissed.includes(item.thread.id) &&
         now - new Date(item.thread.last_activity_at).getTime() > FOLLOW_UP_MS,
     ) ?? null;
-
-  /* answer-mode feedback stays available */
-  const correctMessage =
-    messages.find((message) => message.id === liveClass.pinned_message_id) ?? null;
-  const correct = correctMessage?.message_type === "answer" ? correctMessage : null;
-  const myAnswer = [...myMessages].reverse().find((m) => m.message_type === "answer");
-  const iAmCorrect =
-    correct && myAnswer ? answerKey(myAnswer.body) === answerKey(correct.body) : null;
 
   return (
     <div className="panel relative flex h-[75vh] flex-col overflow-hidden">
@@ -242,49 +324,6 @@ export function StudentChat({
           {status.label}
         </span>
       </header>
-
-      {correct && (
-        <div
-          className={`border-b border-border px-5 py-3 ${
-            iAmCorrect === null ? "bg-secondary" : iAmCorrect ? "bg-success/12" : "bg-destructive/10"
-          }`}
-        >
-          <p className="text-[0.66rem] tracking-[0.14em] text-muted-foreground uppercase">
-            Correct answer
-          </p>
-          <p className="text-sm font-medium break-words">{correct.body}</p>
-          {myAnswer && (
-            <p
-              className={`mt-1 text-xs font-medium ${iAmCorrect ? "text-success" : "text-destructive"}`}
-            >
-              Your answer “{myAnswer.body}” {iAmCorrect ? "matches" : "does not match"}.
-            </p>
-          )}
-        </div>
-      )}
-
-      {quizMode && (
-        <div className="border-b border-border bg-secondary px-5 py-3">
-          <p className="text-[0.66rem] tracking-[0.14em] text-muted-foreground uppercase">
-            Answer mode · {liveClass.quiz_answer_type?.replace("_", " ")}
-          </p>
-          <p className="text-sm font-medium">{liveClass.quiz_prompt}</p>
-          {liveClass.quiz_answer_type === "multiple_choice" && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {liveClass.quiz_options.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => answerMutation.mutate(option)}
-                  disabled={answerMutation.isPending}
-                  className="rounded-md border border-input bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background disabled:opacity-50"
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5">
         {myThreads.length > 0 && (
@@ -311,13 +350,13 @@ export function StudentChat({
           </p>
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : myChats.length === 0 ? (
+          ) : myMessages.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Type your question below — only you and your teacher see it.
+              Type anything — a question, an answer or an issue. Only you and your teacher see it.
             </p>
           ) : (
             <ul className="space-y-2">
-              {[...myChats].reverse().map((message) => (
+              {[...myMessages].reverse().map((message) => (
                 <MessageCard
                   key={message.id}
                   message={message}
@@ -336,37 +375,71 @@ export function StudentChat({
         </section>
       </div>
 
-      {followUp && (
-        <div className="absolute right-4 bottom-20 z-10 w-[min(20rem,calc(100%-2rem))] rounded-xl border border-border bg-card p-4 shadow-lg">
-          <p className="text-sm font-semibold">Did that answer your question?</p>
-          <p className="mt-0.5 text-xs break-words text-muted-foreground">
-            {followUp.thread.title}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              onClick={() =>
-                feedbackMutation.mutate({ threadId: followUp.thread.id, state: "resolved" })
-              }
-              className="inline-flex items-center gap-1.5 rounded-lg bg-success/20 px-3 py-1.5 text-xs font-semibold text-success"
-            >
-              <CheckCircle2 className="size-3.5" /> Got It
-            </button>
-            <button
-              onClick={() =>
-                feedbackMutation.mutate({ threadId: followUp.thread.id, state: "need_help" })
-              }
-              className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 px-3 py-1.5 text-xs font-semibold text-destructive"
-            >
-              <HelpCircle className="size-3.5" /> Still Confused
-            </button>
-            <button
-              onClick={() => setDismissed((list) => [...list, followUp.thread.id])}
-              className="rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:underline"
-            >
-              Later
-            </button>
-          </div>
-        </div>
+      {unsure && (
+        <Popup title="What is this message?" subtitle={unsure.body}>
+          <PopupButton
+            tone="neutral"
+            onClick={() => clarifyMutation.mutate({ message: unsure, category: "question" })}
+          >
+            Question
+          </PopupButton>
+          <PopupButton
+            tone="neutral"
+            onClick={() => clarifyMutation.mutate({ message: unsure, category: "answer" })}
+          >
+            Answer
+          </PopupButton>
+        </Popup>
+      )}
+
+      {!unsure && activePoll && (
+        <Popup
+          title={
+            activePoll.kind === "audio" ? "Can you hear the teacher?" : "Do you also have this question?"
+          }
+          subtitle={activePoll.kind === "audio" ? undefined : activePoll.prompt}
+          icon={activePoll.kind === "audio" ? <Volume2 className="size-4 text-warning" /> : undefined}
+        >
+          <PopupButton
+            tone="good"
+            onClick={() => pollMutation.mutate({ poll: activePoll, answer: "yes" })}
+          >
+            Yes
+          </PopupButton>
+          <PopupButton
+            tone="bad"
+            onClick={() => pollMutation.mutate({ poll: activePoll, answer: "no" })}
+          >
+            No
+          </PopupButton>
+        </Popup>
+      )}
+
+      {!unsure && !activePoll && followUp && (
+        <Popup title="Did that answer your question?" subtitle={followUp.thread.title}>
+          <PopupButton
+            tone="good"
+            onClick={() =>
+              feedbackMutation.mutate({ threadId: followUp.thread.id, state: "resolved" })
+            }
+          >
+            <CheckCircle2 className="size-3.5" /> Got It
+          </PopupButton>
+          <PopupButton
+            tone="bad"
+            onClick={() =>
+              feedbackMutation.mutate({ threadId: followUp.thread.id, state: "need_help" })
+            }
+          >
+            <HelpCircle className="size-3.5" /> Still Confused
+          </PopupButton>
+          <button
+            onClick={() => setDismissed((list) => [...list, followUp.thread.id])}
+            className="rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:underline"
+          >
+            Later
+          </button>
+        </Popup>
       )}
 
       <form onSubmit={submit} className="flex items-center gap-2 border-t border-border px-4 py-3">
@@ -374,7 +447,7 @@ export function StudentChat({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           maxLength={1000}
-          placeholder={quizMode ? "Type your answer…" : "Type a message…"}
+          placeholder="Type a message…"
           className="h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-accent"
         />
         <button
@@ -387,6 +460,57 @@ export function StudentChat({
         </button>
       </form>
     </div>
+  );
+}
+
+/* --------------------------------- pieces --------------------------------- */
+
+function Popup({
+  title,
+  subtitle,
+  icon,
+  children,
+}: {
+  title: string;
+  subtitle?: string | undefined;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="absolute right-4 bottom-20 z-10 w-[min(20rem,calc(100%-2rem))] rounded-xl border border-border bg-card p-4 shadow-lg">
+      <p className="flex items-center gap-2 text-sm font-semibold">
+        {icon}
+        {title}
+      </p>
+      {subtitle && (
+        <p className="mt-0.5 line-clamp-2 text-xs break-words text-muted-foreground">{subtitle}</p>
+      )}
+      <div className="mt-3 flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+function PopupButton({
+  tone,
+  onClick,
+  children,
+}: {
+  tone: "good" | "bad" | "neutral";
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  const styles = {
+    good: "bg-success/20 text-success",
+    bad: "bg-destructive/15 text-destructive",
+    neutral: "border border-input hover:bg-secondary",
+  }[tone];
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${styles}`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -403,10 +527,18 @@ function MessageCard({
   onSeparate: () => void;
 }) {
   const merged = !!stats && stats.students > 1;
+  const meta = CATEGORY_META[toCategory(message.category)];
 
   return (
     <li className="rounded-xl border border-border bg-accent/8 p-3">
-      <p className="text-sm break-words">{message.body}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-sm break-words">{message.body}</p>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${meta.chip}`}
+        >
+          {meta.label}
+        </span>
+      </div>
 
       {stats && (
         <div className="mt-2 rounded-lg bg-secondary px-3 py-2">
@@ -455,6 +587,9 @@ function StudentThreadCard({
   onVote: (voted: boolean) => void;
   onFeedback: (state: FeedbackState | null) => void;
 }) {
+  const meta = CATEGORY_META[item.category];
+  // Only questions can be "understood" — answers and issues need no rating.
+  const rateable = item.category === "question";
   const statusLabel =
     item.health === "settled"
       ? "Resolved"
@@ -470,7 +605,12 @@ function StudentThreadCard({
         item.health === "settled" ? "opacity-60" : ""
       }`}
     >
-      <h3 className="font-display text-sm font-semibold break-words">{item.thread.title}</h3>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="font-display text-sm font-semibold break-words">{item.thread.title}</h3>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${meta.chip}`}>
+          {meta.label}
+        </span>
+      </div>
       <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
         <div>
           <dt className="text-muted-foreground">Status</dt>
@@ -495,31 +635,37 @@ function StudentThreadCard({
         >
           <ArrowUp className="size-3.5" /> {voted ? "Upvoted" : "Upvote"}
         </button>
-        <button
-          onClick={() => onFeedback(feedback === "resolved" ? null : "resolved")}
-          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-            feedback === "resolved"
-              ? "bg-success/20 text-success"
-              : "border border-input hover:bg-secondary"
-          }`}
-        >
-          <CheckCircle2 className="size-3.5" /> Got It
-        </button>
-        <button
-          onClick={() => onFeedback(feedback === "need_help" ? null : "need_help")}
-          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-            feedback === "need_help"
-              ? "bg-destructive/15 text-destructive"
-              : "border border-input hover:bg-secondary"
-          }`}
-        >
-          <HelpCircle className="size-3.5" /> Still Confused
-        </button>
+        {rateable && (
+          <>
+            <button
+              onClick={() => onFeedback(feedback === "resolved" ? null : "resolved")}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                feedback === "resolved"
+                  ? "bg-success/20 text-success"
+                  : "border border-input hover:bg-secondary"
+              }`}
+            >
+              <CheckCircle2 className="size-3.5" /> Got It
+            </button>
+            <button
+              onClick={() => onFeedback(feedback === "need_help" ? null : "need_help")}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                feedback === "need_help"
+                  ? "bg-destructive/15 text-destructive"
+                  : "border border-input hover:bg-secondary"
+              }`}
+            >
+              <HelpCircle className="size-3.5" /> Still Confused
+            </button>
+          </>
+        )}
       </div>
 
-      <p className="mt-2 text-[0.68rem] text-muted-foreground">
-        {item.resolvedPct}% of responding students say they got it.
-      </p>
+      {rateable && (
+        <p className="mt-2 text-[0.68rem] text-muted-foreground">
+          {item.resolvedPct}% of responding students say they got it.
+        </p>
+      )}
     </div>
   );
 }

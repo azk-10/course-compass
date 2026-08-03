@@ -1,6 +1,8 @@
 import { Radio, Settings2, Users } from "lucide-react";
 
+import { toCategory } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
+
 import type { Session } from "@/lib/dashboard-data";
 import type { ThreadStats } from "@/lib/threads";
 
@@ -44,9 +46,12 @@ export function QuickStats({
   session: Session | null;
   stats: ThreadStats[];
 }) {
-  const answers = messages.filter((message) => message.message_type === "answer").length;
+  const answers = messages.filter((message) => toCategory(message.category) === "answer").length;
+  const issues = stats.filter((item) => item.category === "technical").length;
   const upvotes = stats.reduce((sum, item) => sum + item.upvotes, 0);
-  const open = stats.filter((item) => item.health !== "settled").length;
+  const open = stats.filter(
+    (item) => item.health !== "settled" && item.category !== "spam",
+  ).length;
   const minutes = session
     ? Math.max(0, Math.round((Date.now() - new Date(session.started_at).getTime()) / 60000))
     : 0;
@@ -55,10 +60,11 @@ export function QuickStats({
     { label: "Open threads", value: open },
     { label: "Upvotes", value: upvotes },
     { label: "Answers", value: answers },
+    { label: "Tech issues", value: issues },
     { label: "Online", value: online },
     { label: "Minutes", value: minutes },
-    { label: "Archived", value: stats.length - open },
   ];
+
 
   return (
     <div className="panel p-5">

@@ -91,6 +91,8 @@ export type Database = {
       messages: {
         Row: {
           body: string
+          category: string
+          confidence: number
           course_id: string | null
           created_at: string
           id: string
@@ -104,6 +106,8 @@ export type Database = {
         }
         Insert: {
           body: string
+          category?: string
+          confidence?: number
           course_id?: string | null
           created_at?: string
           id?: string
@@ -117,6 +121,8 @@ export type Database = {
         }
         Update: {
           body?: string
+          category?: string
+          confidence?: number
           course_id?: string | null
           created_at?: string
           id?: string
@@ -145,6 +151,93 @@ export type Database = {
           },
           {
             foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_responses: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          poll_id: string
+          session_id: string
+          student_label: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          poll_id: string
+          session_id: string
+          student_label: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          poll_id?: string
+          session_id?: string
+          student_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_responses_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          prompt: string
+          session_id: string
+          status: string
+          thread_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          prompt: string
+          session_id: string
+          status?: string
+          thread_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          prompt?: string
+          session_id?: string
+          status?: string
+          thread_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polls_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "threads"
@@ -348,6 +441,7 @@ export type Database = {
       }
       threads: {
         Row: {
+          category: string
           course_id: string | null
           created_at: string
           id: string
@@ -358,6 +452,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          category?: string
           course_id?: string | null
           created_at?: string
           id?: string
@@ -368,6 +463,7 @@ export type Database = {
           title: string
         }
         Update: {
+          category?: string
           course_id?: string | null
           created_at?: string
           id?: string

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toCategory, type Category } from "@/lib/classify";
 import { textSimilarity } from "@/lib/grouping";
 
 /**
@@ -12,6 +13,7 @@ export type Thread = {
   teacher_id: string | null;
   title: string;
   status: string;
+  category: string;
   created_at: string;
   last_activity_at: string;
 };
@@ -24,6 +26,8 @@ export type ThreadHealth = "new" | "attention" | "urgent" | "settled";
 
 export type ThreadStats = {
   thread: Thread;
+  /** Dominant message type of the thread. */
+  category: Category;
   /** Distinct students who joined or created the thread. */
   students: number;
   upvotes: number;
@@ -32,12 +36,13 @@ export type ThreadStats = {
   /** Share of responding students who marked it resolved (0-100). */
   resolvedPct: number;
   health: ThreadHealth;
-  /** Higher first. Settled threads always sink to the bottom. */
+  /** Higher first. Spam and settled threads always sink to the bottom. */
   priority: number;
 };
 
 const THREAD_FIELDS =
-  "id, session_id, course_id, teacher_id, title, status, created_at, last_activity_at";
+  "id, session_id, course_id, teacher_id, title, status, category, created_at, last_activity_at";
+
 
 /* ---------------------------------- reads ---------------------------------- */
 
@@ -87,6 +92,7 @@ export async function createThread(input: {
   teacherId: string | null;
   title: string;
   studentLabel: string;
+  category?: Category;
 }): Promise<Thread> {
   const { data, error } = await supabase
     .from("threads")
@@ -95,7 +101,9 @@ export async function createThread(input: {
       course_id: input.courseId,
       teacher_id: input.teacherId,
       title: input.title.slice(0, 160),
+      category: input.category ?? "question",
     })
+
     .select(THREAD_FIELDS)
     .single();
   if (error) throw error;
@@ -188,8 +196,11 @@ export function buildStats(input: {
   votes: ThreadRow[];
   feedback: FeedbackRow[];
   threshold: number;
+  /** Threads the classroom health checks pushed to the very top. */
+  boosted?: string[];
 }): ThreadStats[] {
   const { threads, participants, votes, feedback, threshold } = input;
+  const boosted = new Set(input.boosted ?? []);
 
   const count = (rows: { thread_id: string }[]) => {
     const map = new Map<string, number>();
@@ -204,6 +215,7 @@ export function buildStats(input: {
 
   return threads
     .map((thread) => {
+      const category = toCategory(thread.category);
       const s = students.get(thread.id) ?? 0;
       const up = upvotes.get(thread.id) ?? 0;
       const ok = resolved.get(thread.id) ?? 0;
@@ -211,19 +223,41 @@ export function buildStats(input: {
       const answered = ok + help;
       const resolvedPct = answered ? Math.round((ok / answered) * 100) : 0;
       const helpShare = answered ? help / answered : 0;
+      const boost = boosted.has(thread.id);
 
-      const settled = thread.status === "archived" || (answered > 0 && resolvedPct >= threshold);
-      const health: ThreadHealth = settled
-        ? "settled"
-        : helpShare >= 0.6 && help >= 3
-          ? "urgent"
-          : help >= 1
-            ? "attention"
-            : "new";
+      const settled =
+        !boost && (thread.status === "archived" || (answered > 0 && resolvedPct >= threshold));
+      const health: ThreadHealth = boost
+        ? "urgent"
+        : settled
+          ? "settled"
+          : helpShare >= 0.6 && help >= 3
+            ? "urgent"
+            : help >= 1
+              ? "attention"
+              : "new";
 
-      const priority = settled ? -1 : s + up * 2 + help * 3 - ok;
+      // Spam never competes for the teacher's attention.
+      const priority =
+        category === "spam"
+          ? -1000
+          : boost
+            ? 10_000
+            : settled
+              ? -1
+              : s + up * 2 + help * 3 - ok;
 
-      return { thread, students: s, upvotes: up, resolved: ok, needHelp: help, resolvedPct, health, priority };
+      return {
+        thread,
+        category,
+        students: s,
+        upvotes: up,
+        resolved: ok,
+        needHelp: help,
+        resolvedPct,
+        health,
+        priority,
+      };
     })
     .sort(
       (a, b) =>
@@ -231,6 +265,7 @@ export function buildStats(input: {
         b.thread.last_activity_at.localeCompare(a.thread.last_activity_at),
     );
 }
+
 
 /** Best existing thread for a draft message, when it is close enough to merge. */
 export function findSimilarThread(draft: string, threads: Thread[], min = 0.45) {
@@ -254,6 +289,13 @@ export async function reopenThread(threadId: string): Promise<void> {
     .update({ status: "open", last_activity_at: new Date().toISOString() })
     .eq("id", threadId);
 }
+
+/** Corrects a thread's dominant category after a student clarifies their intent. */
+export async function setThreadCategory(threadId: string, category: Category): Promise<void> {
+  await supabase.from("threads").update({ category }).eq("id", threadId);
+}
+
+
 
 export async function leaveThread(input: {
   threadId: string;
@@ -288,6 +330,7 @@ export async function separateMessage(input: {
   courseId: string;
   teacherId: string | null;
   studentLabel: string;
+  category?: Category;
   /** Other messages of this student still attached to the old thread. */
   stillAttached: number;
 }): Promise<Thread> {
@@ -297,7 +340,9 @@ export async function separateMessage(input: {
     teacherId: input.teacherId,
     title: input.body,
     studentLabel: input.studentLabel,
+    category: input.category ?? "question",
   });
+
 
   const { error } = await supabase
     .from("messages")

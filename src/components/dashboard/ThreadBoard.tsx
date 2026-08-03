@@ -1,5 +1,15 @@
-import { ArrowUp, CheckCircle2, Flame, MessageSquare, TriangleAlert, Users } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowUp,
+  CheckCircle2,
+  ChevronDown,
+  Flame,
+  MessageSquare,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
 
+import { CATEGORY_META } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
 import type { ThreadStats } from "@/lib/threads";
 
@@ -47,8 +57,11 @@ export function ThreadBoard({
   messages: ChatMessage[];
   isLoading?: boolean;
 }) {
-  const active = stats.filter((item) => item.health !== "settled");
-  const settled = stats.filter((item) => item.health === "settled");
+  const [showSpam, setShowSpam] = useState(false);
+  const real = stats.filter((item) => item.category !== "spam");
+  const spam = stats.filter((item) => item.category === "spam");
+  const active = real.filter((item) => item.health !== "settled");
+  const settled = real.filter((item) => item.health === "settled");
 
   if (isLoading) {
     return <p className="flex-1 px-6 py-8 text-sm text-muted-foreground">Reading the classroom…</p>;
@@ -81,9 +94,29 @@ export function ThreadBoard({
           </ul>
         </div>
       )}
+
+      {spam.length > 0 && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowSpam((open) => !open)}
+            className="inline-flex items-center gap-1.5 text-[0.62rem] tracking-[0.14em] text-muted-foreground uppercase hover:text-foreground"
+          >
+            <ChevronDown className={`size-3.5 transition-transform ${showSpam ? "" : "-rotate-90"}`} />
+            Filtered out · {spam.length} spam thread{spam.length === 1 ? "" : "s"}
+          </button>
+          {showSpam && (
+            <ul className="mt-2 grid gap-2 opacity-60">
+              {spam.map((item) => (
+                <ThreadCard key={item.thread.id} item={item} messages={messages} compact />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function ThreadCard({
   item,
@@ -95,6 +128,7 @@ function ThreadCard({
   compact?: boolean;
 }) {
   const meta = HEALTH[item.health];
+  const category = CATEGORY_META[item.category];
   const Icon = meta.icon;
   const examples = messages
     .filter((message) => message.thread_id === item.thread.id && !message.is_teacher)
@@ -107,6 +141,10 @@ function ThreadCard({
         <div className="min-w-0">
           <h3 className="font-display text-base font-semibold break-words">{item.thread.title}</h3>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className={`inline-flex items-center gap-1.5 font-semibold ${category.text}`}>
+              <span className={`size-2 rounded-full ${category.dot}`} />
+              {category.label}
+            </span>
             <span className="inline-flex items-center gap-1.5">
               <Users className="size-3.5" />
               {item.students} student{item.students === 1 ? "" : "s"}
@@ -115,13 +153,15 @@ function ThreadCard({
               <ArrowUp className="size-3.5" />
               {item.upvotes} upvote{item.upvotes === 1 ? "" : "s"}
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="size-3.5" />
-              {item.resolvedPct}% got it
-            </span>
-
+            {item.category === "question" && (
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="size-3.5" />
+                {item.resolvedPct}% got it
+              </span>
+            )}
           </p>
         </div>
+
         <span
           className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${meta.text}`}
         >

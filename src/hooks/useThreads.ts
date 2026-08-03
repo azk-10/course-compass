@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { isAudioIssue, toCategory } from "@/lib/classify";
 import {
   buildStats,
   fetchFeedback,
@@ -13,8 +14,10 @@ import {
 /**
  * Live aggregate of every merged thread in a session: counts, upvotes,
  * resolution feedback and derived priority — all updating in real time.
+ * When a classroom audio check fails, audio threads jump to the very top.
  */
-export function useThreads(sessionId: string | null, threshold = 75) {
+export function useThreads(sessionId: string | null, threshold = 75, audioAlert = false) {
+
   const queryClient = useQueryClient();
 
   const threadsQuery = useQuery({
@@ -65,10 +68,17 @@ export function useThreads(sessionId: string | null, threshold = 75) {
   const votes = votesQuery.data ?? [];
   const feedback = feedbackQuery.data ?? [];
 
-  const stats = useMemo(
-    () => buildStats({ threads, participants, votes, feedback, threshold }),
-    [threads, participants, votes, feedback, threshold],
-  );
+  const stats = useMemo(() => {
+    const boosted = audioAlert
+      ? threads
+          .filter(
+            (thread) => toCategory(thread.category) === "technical" && isAudioIssue(thread.title),
+          )
+          .map((thread) => thread.id)
+      : [];
+    return buildStats({ threads, participants, votes, feedback, threshold, boosted });
+  }, [threads, participants, votes, feedback, threshold, audioAlert]);
+
 
   return {
     threads,
