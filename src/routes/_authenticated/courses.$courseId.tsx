@@ -69,6 +69,11 @@ function CourseDashboard() {
   const [decidingId, setDecidingId] = useState<string | null>(null);
   const [sessionTitle, setSessionTitle] = useState("");
   const [chatTab, setChatTab] = useState<ChatTab>("topics");
+  const [railOpen, setRailOpen] = useState(false);
+
+  useEffect(() => {
+    setRailOpen(window.innerWidth >= 1024);
+  }, []);
 
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const activeCourse = coursesQuery.data?.find((course) => course.id === courseId) ?? null;
