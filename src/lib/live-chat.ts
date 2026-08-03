@@ -41,6 +41,7 @@ export async function sendMessage(input: {
   body: string;
   isTeacher?: boolean;
   studentId?: string | null;
+  threadId?: string | null;
   messageType?: MessageType;
 }): Promise<void> {
   const { error } = await supabase.from("messages").insert({
@@ -50,6 +51,7 @@ export async function sendMessage(input: {
     body: input.body,
     is_teacher: input.isTeacher ?? false,
     student_id: input.studentId ?? null,
+    thread_id: input.threadId ?? null,
     message_type: input.messageType ?? "chat",
   });
   if (error) throw error;

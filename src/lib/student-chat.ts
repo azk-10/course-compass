@@ -11,12 +11,14 @@ export type StudentCourse = {
 export type LiveClass = {
   id: string;
   course_id: string;
+  teacher_id: string;
   title: string;
   mode: string;
   pinned_message_id: string | null;
   quiz_prompt: string | null;
   quiz_answer_type: string | null;
   quiz_options: string[];
+  resolve_threshold: number;
   started_at: string;
 };
 
@@ -35,7 +37,7 @@ export async function fetchLiveClass(courseId: string): Promise<LiveClass | null
   const { data, error } = await supabase
     .from("sessions")
     .select(
-      "id, course_id, title, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, started_at",
+      "id, course_id, teacher_id, title, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, resolve_threshold, started_at",
     )
     .eq("course_id", courseId)
     .eq("status", "live")
