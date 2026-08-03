@@ -97,8 +97,12 @@ function Dashboard() {
 
   const { messages, isLoading: messagesLoading, connection } = useLiveMessages(session?.id ?? null);
   const online = studentsOnline(messages);
-  const pinned = messages.find((message) => message.id === session?.pinned_message_id) ?? null;
-  const questionGroups = useMemo(() => groupQuestions(messages), [messages]);
+  const threshold = session?.resolve_threshold ?? 75;
+  const { stats: threadStats, isLoading: threadsLoading } = useThreads(
+    session?.id ?? null,
+    threshold,
+  );
+  const topThread = threadStats.find((item) => item.health !== "settled") ?? null;
   const answerGroups = useMemo(() => groupAnswers(messages), [messages]);
 
   useEffect(() => {
