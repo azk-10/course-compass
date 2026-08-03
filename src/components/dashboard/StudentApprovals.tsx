@@ -1,4 +1,5 @@
-import { Check, UserPlus, X } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Mail, Phone, UserPlus, X } from "lucide-react";
 import type { Enrollment } from "@/lib/dashboard-data";
 
 export function StudentApprovals({
