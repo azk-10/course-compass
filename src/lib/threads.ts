@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toCategory, type Category } from "@/lib/classify";
 import { textSimilarity } from "@/lib/grouping";
 
 /**
@@ -12,6 +13,7 @@ export type Thread = {
   teacher_id: string | null;
   title: string;
   status: string;
+  category: string;
   created_at: string;
   last_activity_at: string;
 };
@@ -24,6 +26,8 @@ export type ThreadHealth = "new" | "attention" | "urgent" | "settled";
 
 export type ThreadStats = {
   thread: Thread;
+  /** Dominant message type of the thread. */
+  category: Category;
   /** Distinct students who joined or created the thread. */
   students: number;
   upvotes: number;
@@ -32,12 +36,13 @@ export type ThreadStats = {
   /** Share of responding students who marked it resolved (0-100). */
   resolvedPct: number;
   health: ThreadHealth;
-  /** Higher first. Settled threads always sink to the bottom. */
+  /** Higher first. Spam and settled threads always sink to the bottom. */
   priority: number;
 };
 
 const THREAD_FIELDS =
-  "id, session_id, course_id, teacher_id, title, status, created_at, last_activity_at";
+  "id, session_id, course_id, teacher_id, title, status, category, created_at, last_activity_at";
+
 
 /* ---------------------------------- reads ---------------------------------- */
 
