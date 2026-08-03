@@ -1,14 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { Archive, ArchiveRestore, Play, Trash2, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Archive, ArchiveRestore, Play, Square, Trash2, Volume2, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { CourseSidebar } from "@/components/dashboard/CourseSidebar";
-import { AnswerGroups } from "@/components/dashboard/AnswerGroups";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
-import { ModeControls } from "@/components/dashboard/ModeControls";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
 import {
@@ -18,9 +16,10 @@ import {
   TopThread,
 } from "@/components/dashboard/SessionRail";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
+import { usePolls } from "@/hooks/usePolls";
 import { useThreads } from "@/hooks/useThreads";
-import { groupAnswers } from "@/lib/grouping";
 import { studentsOnline } from "@/lib/live-chat";
+import { pollVerdict } from "@/lib/polls";
 
 import {
   createCourse,
@@ -31,14 +30,10 @@ import {
   fetchSessions,
   setCourseArchived,
   setEnrollmentStatus,
-  setPinnedMessage,
-  setQuiz,
   setResolveThreshold,
-  setSessionMode,
   startSession,
-  type AnswerType,
-  type SessionMode,
 } from "@/lib/dashboard-data";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
