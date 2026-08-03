@@ -1,4 +1,6 @@
-import { Radio, Settings2, Users } from "lucide-react";
+import { Minus, Plus, Radio, Settings2, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+
 
 import { toCategory } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
