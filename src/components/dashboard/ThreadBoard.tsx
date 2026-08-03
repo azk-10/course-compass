@@ -1,5 +1,15 @@
-import { ArrowUp, CheckCircle2, Flame, MessageSquare, TriangleAlert, Users } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowUp,
+  CheckCircle2,
+  ChevronDown,
+  Flame,
+  MessageSquare,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
 
+import { CATEGORY_META } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
 import type { ThreadStats } from "@/lib/threads";
 
@@ -47,8 +57,11 @@ export function ThreadBoard({
   messages: ChatMessage[];
   isLoading?: boolean;
 }) {
-  const active = stats.filter((item) => item.health !== "settled");
-  const settled = stats.filter((item) => item.health === "settled");
+  const [showSpam, setShowSpam] = useState(false);
+  const real = stats.filter((item) => item.category !== "spam");
+  const spam = stats.filter((item) => item.category === "spam");
+  const active = real.filter((item) => item.health !== "settled");
+  const settled = real.filter((item) => item.health === "settled");
 
   if (isLoading) {
     return <p className="flex-1 px-6 py-8 text-sm text-muted-foreground">Reading the classroom…</p>;
@@ -81,9 +94,29 @@ export function ThreadBoard({
           </ul>
         </div>
       )}
+
+      {spam.length > 0 && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowSpam((open) => !open)}
+            className="inline-flex items-center gap-1.5 text-[0.62rem] tracking-[0.14em] text-muted-foreground uppercase hover:text-foreground"
+          >
+            <ChevronDown className={`size-3.5 transition-transform ${showSpam ? "" : "-rotate-90"}`} />
+            Filtered out · {spam.length} spam thread{spam.length === 1 ? "" : "s"}
+          </button>
+          {showSpam && (
+            <ul className="mt-2 grid gap-2 opacity-60">
+              {spam.map((item) => (
+                <ThreadCard key={item.thread.id} item={item} messages={messages} compact />
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
 
 function ThreadCard({
   item,
