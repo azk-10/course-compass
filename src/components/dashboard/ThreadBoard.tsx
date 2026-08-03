@@ -128,6 +128,7 @@ function ThreadCard({
   compact?: boolean;
 }) {
   const meta = HEALTH[item.health];
+  const category = CATEGORY_META[item.category];
   const Icon = meta.icon;
   const examples = messages
     .filter((message) => message.thread_id === item.thread.id && !message.is_teacher)
@@ -140,6 +141,10 @@ function ThreadCard({
         <div className="min-w-0">
           <h3 className="font-display text-base font-semibold break-words">{item.thread.title}</h3>
           <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className={`inline-flex items-center gap-1.5 font-semibold ${category.text}`}>
+              <span className={`size-2 rounded-full ${category.dot}`} />
+              {category.label}
+            </span>
             <span className="inline-flex items-center gap-1.5">
               <Users className="size-3.5" />
               {item.students} student{item.students === 1 ? "" : "s"}
@@ -148,13 +153,15 @@ function ThreadCard({
               <ArrowUp className="size-3.5" />
               {item.upvotes} upvote{item.upvotes === 1 ? "" : "s"}
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="size-3.5" />
-              {item.resolvedPct}% got it
-            </span>
-
+            {item.category === "question" && (
+              <span className="inline-flex items-center gap-1.5">
+                <CheckCircle2 className="size-3.5" />
+                {item.resolvedPct}% got it
+              </span>
+            )}
           </p>
         </div>
+
         <span
           className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${meta.text}`}
         >
