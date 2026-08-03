@@ -109,7 +109,10 @@ export function RawChatList({ messages, tab }: { messages: ChatMessage[]; tab: C
         {shown.map((message) => {
           const category = CATEGORY_META[toCategory(message.category)];
           return (
-            <li key={message.id} className="rounded-lg border border-border bg-card px-4 py-3">
+            <li
+              key={message.id}
+              className="rise-in rounded-lg border border-border bg-card px-4 py-3 transition-shadow hover:shadow-panel"
+            >
               <p className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span className="truncate font-semibold text-foreground">
                   {message.sender_label}
