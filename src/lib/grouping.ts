@@ -224,6 +224,28 @@ const FORMULA_WORDS: Record<string, string> = {
   over: "/",
 };
 
+/** Short unit symbols merge with their spelled-out names. */
+const UNIT_ALIASES: Record<string, string> = {
+  n: "newton",
+  newtons: "newton",
+  j: "joule",
+  joules: "joule",
+  w: "watt",
+  watts: "watt",
+  kg: "kilogram",
+  kilograms: "kilogram",
+  m: "meter",
+  metre: "meter",
+  metres: "meter",
+  meters: "meter",
+  s: "second",
+  sec: "second",
+  seconds: "second",
+  pa: "pascal",
+  pascals: "pascal",
+  hz: "hertz",
+};
+
 /** Canonical form of an answer so "39", "Thirty Nine" and "039" merge. */
 export function answerKey(body: string): string {
   const raw = baseNormalize(body);
@@ -250,7 +272,10 @@ export function answerKey(body: string): string {
   const numeric = raw.replace(/[^0-9.]/g, "");
   if (numeric && /^[0-9.\s]+$/.test(raw)) return `n:${Number(numeric)}`;
 
-  const text = words.map((word) => FORMULA_WORDS[word] ?? word).join("");
+  const text = words
+    .map((word) => UNIT_ALIASES[word] ?? word)
+    .map((word) => FORMULA_WORDS[word] ?? word)
+    .join("");
   return `t:${text}`;
 }
 
