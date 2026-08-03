@@ -283,11 +283,15 @@ function CourseDashboard() {
                 Most students say they cannot hear you — check your microphone.
               </div>
             )}
-            <ThreadBoard
-              stats={threadStats}
-              messages={messages}
-              isLoading={threadsLoading || messagesLoading}
-            />
+            {chatTab === "topics" ? (
+              <ThreadBoard
+                stats={threadStats}
+                messages={messages}
+                isLoading={threadsLoading || messagesLoading}
+              />
+            ) : (
+              <RawChatList messages={messages} tab={chatTab} />
+            )}
             <div className="flex justify-end border-t border-border bg-card px-4 py-3 sm:px-6">
               <button
                 onClick={() => endMutation.mutate()}
