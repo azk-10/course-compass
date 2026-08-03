@@ -1,12 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Category } from "@/lib/classify";
 
 /**
- * Every message is stored raw and immutable. Grouping (AI or manual) will be a
- * derived layer built on top of these rows later — nothing here overwrites or
- * deletes the original message.
+ * Every message is stored raw and immutable — including spam, which is kept for
+ * moderation but never shown on the teacher dashboard. Classification and
+ * grouping are derived layers on top of these rows.
  */
-export type MessageType = "chat" | "answer";
-
 export type ChatMessage = {
   id: string;
   session_id: string;
@@ -16,12 +15,14 @@ export type ChatMessage = {
   sender_label: string;
   is_teacher: boolean;
   message_type: string;
+  category: string | null;
+  confidence: number | null;
   body: string;
   created_at: string;
 };
 
 export const MESSAGE_FIELDS =
-  "id, session_id, course_id, student_id, thread_id, sender_label, is_teacher, message_type, body, created_at";
+  "id, session_id, course_id, student_id, thread_id, sender_label, is_teacher, message_type, category, confidence, body, created_at";
 
 export async function fetchMessages(sessionId: string): Promise<ChatMessage[]> {
   const { data, error } = await supabase
@@ -42,20 +43,33 @@ export async function sendMessage(input: {
   isTeacher?: boolean;
   studentId?: string | null;
   threadId?: string | null;
-  messageType?: MessageType;
-}): Promise<void> {
-  const { error } = await supabase.from("messages").insert({
-    session_id: input.sessionId,
-    course_id: input.courseId,
-    sender_label: input.senderLabel,
-    body: input.body,
-    is_teacher: input.isTeacher ?? false,
-    student_id: input.studentId ?? null,
-    thread_id: input.threadId ?? null,
-    message_type: input.messageType ?? "chat",
-  });
+  category?: Category;
+  confidence?: number;
+}): Promise<ChatMessage> {
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      session_id: input.sessionId,
+      course_id: input.courseId,
+      sender_label: input.senderLabel,
+      body: input.body,
+      is_teacher: input.isTeacher ?? false,
+      student_id: input.studentId ?? null,
+      thread_id: input.threadId ?? null,
+      category: input.category ?? null,
+      confidence: input.confidence ?? null,
+    })
+    .select(MESSAGE_FIELDS)
+    .single();
   if (error) throw error;
+  return data as ChatMessage;
 }
+
+/** Corrects the category of a message after a low-confidence student prompt. */
+export async function setMessageCategory(id: string, category: Category): Promise<void> {
+  await supabase.from("messages").update({ category, confidence: 1 }).eq("id", id);
+}
+
 
 /** Distinct students seen in the feed within the last few minutes. */
 export function studentsOnline(messages: ChatMessage[], windowMinutes = 10): string[] {
