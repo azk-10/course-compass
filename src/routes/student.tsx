@@ -204,16 +204,11 @@ function StudentDashboard() {
                 })}
               </ul>
             )}
-            {approvedButNoName(confirmedName)}
           </div>
         )}
       </div>
     </main>
   );
-}
-
-function approvedButNoName(_name: string) {
-  return null;
 }
 
 function Header() {
