@@ -290,6 +290,13 @@ export async function reopenThread(threadId: string): Promise<void> {
     .eq("id", threadId);
 }
 
+/** Corrects a thread's dominant category after a student clarifies their intent. */
+export async function setThreadCategory(threadId: string, category: Category): Promise<void> {
+  await supabase.from("threads").update({ category }).eq("id", threadId);
+}
+
+
+
 export async function leaveThread(input: {
   threadId: string;
   studentLabel: string;
