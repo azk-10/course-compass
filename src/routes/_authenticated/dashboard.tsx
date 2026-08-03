@@ -249,11 +249,12 @@ function Dashboard() {
             <h1 className="mt-1 flex min-w-0 items-center gap-2 truncate font-display text-xl font-semibold">
               {session ? session.title : "No live session"}
               {session && (
-                <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent capitalize">
-                  {session.mode === "quiz" ? "Answer mode" : "Question mode"}
+                <span className="shrink-0 rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
+                  Live chat
                 </span>
               )}
             </h1>
+
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
