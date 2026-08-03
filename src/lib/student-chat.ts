@@ -54,3 +54,43 @@ export async function sendMessage(input: {
   });
   if (error) throw error;
 }
+
+export type StudentCourse = {
+  id: string;
+  title: string;
+  term: string | null;
+  is_crash: boolean;
+  teacher_id: string;
+};
+
+export async function fetchActiveCourses(): Promise<StudentCourse[]> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("id, title, term, is_crash, teacher_id")
+    .eq("status", "active")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchMyEnrollments(studentLabel: string) {
+  const { data, error } = await supabase
+    .from("enrollments")
+    .select("id, course_id, status")
+    .eq("student_label", studentLabel);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function requestEnrollment(input: {
+  courseId: string;
+  teacherId: string;
+  studentLabel: string;
+}): Promise<void> {
+  const { error } = await supabase.from("enrollments").insert({
+    course_id: input.courseId,
+    teacher_id: input.teacherId,
+    student_label: input.studentLabel,
+  });
+  if (error) throw error;
+}
