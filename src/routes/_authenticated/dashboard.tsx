@@ -93,12 +93,20 @@ function Dashboard() {
   const { messages, isLoading: messagesLoading, connection } = useLiveMessages(session?.id ?? null);
   const online = studentsOnline(messages);
   const threshold = session?.resolve_threshold ?? 75;
+
+  // Classroom-wide audio check: if the class says they cannot hear, audio
+  // threads are pushed to the top of the board automatically.
+  const { polls, responses } = usePolls(session?.id ?? null);
+  const audioPoll = polls.find((poll) => poll.kind === "audio") ?? null;
+  const audioAlert = audioPoll ? pollVerdict(audioPoll, responses).majorityNo : false;
+
   const { stats: threadStats, isLoading: threadsLoading } = useThreads(
     session?.id ?? null,
     threshold,
+    audioAlert,
   );
   const topThread = threadStats.find((item) => item.health !== "settled") ?? null;
-  const answerGroups = useMemo(() => groupAnswers(messages), [messages]);
+
 
   useEffect(() => {
     if (!activeId) return;
