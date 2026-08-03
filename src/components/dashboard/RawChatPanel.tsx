@@ -89,7 +89,7 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+      className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[0.7rem] font-medium transition-colors ${
         active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "opacity-70 hover:opacity-100"
       }`}
     >
