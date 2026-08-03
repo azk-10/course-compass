@@ -48,7 +48,7 @@ export function RawChatPanel({ messages }: { messages: ChatMessage[] }) {
       <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-4">
         {shown.length === 0 && (
           <li className="px-2 py-4 text-xs opacity-60">
-            {tab === "spam" ? "Nothing filtered out yet." : "No messages yet."}
+            {tab === "all" ? "No messages yet." : "Nothing in this category yet."}
           </li>
         )}
         {shown.map((message) => {
