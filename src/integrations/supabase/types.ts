@@ -17,29 +17,76 @@ export type Database = {
       courses: {
         Row: {
           accent: string
+          archived_at: string | null
           created_at: string
           id: string
+          is_crash: boolean
+          status: string
           teacher_id: string
           term: string | null
           title: string
         }
         Insert: {
           accent?: string
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_crash?: boolean
+          status?: string
           teacher_id: string
           term?: string | null
           title: string
         }
         Update: {
           accent?: string
+          archived_at?: string | null
           created_at?: string
           id?: string
+          is_crash?: boolean
+          status?: string
           teacher_id?: string
           term?: string | null
           title?: string
         }
         Relationships: []
+      }
+      enrollments: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          status: string
+          student_label: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_label: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_label?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
