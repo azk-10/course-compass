@@ -53,13 +53,14 @@ export function ChatTabList({
             onClick={() => onChange(key)}
             title={collapsed ? `${label} (${count})` : undefined}
             aria-label={label}
-            className={`relative inline-flex items-center gap-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`relative inline-flex items-center gap-2 overflow-hidden rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
               collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
             } ${
               active
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                 : "opacity-75 hover:bg-sidebar-accent/50 hover:opacity-100"
             }`}
+
           >
             <Icon className="size-4 shrink-0" />
             {collapsed ? (
