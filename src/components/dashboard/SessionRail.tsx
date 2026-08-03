@@ -1,7 +1,8 @@
-import { Radio, Users } from "lucide-react";
+import { Radio, Settings2, Users } from "lucide-react";
 
 import type { ChatMessage } from "@/lib/live-chat";
 import type { Session } from "@/lib/dashboard-data";
+import type { ThreadStats } from "@/lib/threads";
 
 export function StudentsOnline({ names }: { names: string[] }) {
   return (
@@ -36,24 +37,27 @@ export function QuickStats({
   messages,
   online,
   session,
+  stats,
 }: {
   messages: ChatMessage[];
   online: number;
   session: Session | null;
+  stats: ThreadStats[];
 }) {
   const answers = messages.filter((message) => message.message_type === "answer").length;
-  const questions = messages.filter(
-    (message) => message.message_type !== "answer" && !message.is_teacher,
-  ).length;
+  const upvotes = stats.reduce((sum, item) => sum + item.upvotes, 0);
+  const open = stats.filter((item) => item.health !== "settled").length;
   const minutes = session
     ? Math.max(0, Math.round((Date.now() - new Date(session.started_at).getTime()) / 60000))
     : 0;
 
   const items = [
-    { label: "Messages", value: questions },
+    { label: "Open threads", value: open },
+    { label: "Upvotes", value: upvotes },
     { label: "Answers", value: answers },
     { label: "Online", value: online },
     { label: "Minutes", value: minutes },
+    { label: "Archived", value: stats.length - open },
   ];
 
   return (
@@ -73,36 +77,55 @@ export function QuickStats({
   );
 }
 
-export function CurrentDiscussion({
-  message,
-  onClear,
+/** The only setting a teacher ever touches. */
+export function ThreadSettings({
+  threshold,
+  onChange,
+  disabled,
 }: {
-  message: ChatMessage | null;
-  onClear: () => void;
+  threshold: number;
+  onChange: (value: number) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="panel p-5">
-      <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 font-display text-sm font-semibold">
-          <Radio className="size-4 text-accent" /> Currently discussing
-        </h3>
-        {message && (
-          <button
-            onClick={onClear}
-            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-      {message ? (
+      <h3 className="flex items-center gap-2 font-display text-sm font-semibold">
+        <Settings2 className="size-4 text-muted-foreground" /> Settings
+      </h3>
+      <label htmlFor="threshold" className="mt-3 block text-xs text-muted-foreground">
+        Auto-archive a thread when {threshold}% of responding students mark it resolved.
+      </label>
+      <input
+        id="threshold"
+        type="range"
+        min={40}
+        max={100}
+        step={5}
+        value={threshold}
+        disabled={disabled}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="mt-2 w-full accent-[var(--accent)]"
+      />
+    </div>
+  );
+}
+
+export function TopThread({ item }: { item: ThreadStats | null }) {
+  return (
+    <div className="panel p-5">
+      <h3 className="flex items-center gap-2 font-display text-sm font-semibold">
+        <Radio className="size-4 text-accent" /> Highest priority
+      </h3>
+      {item ? (
         <div className="mt-3 rounded-lg bg-accent/12 px-3 py-2.5 ring-1 ring-accent/30">
-          <p className="text-xs font-semibold text-accent">{message.sender_label}</p>
-          <p className="mt-0.5 text-sm break-words">{message.body}</p>
+          <p className="text-sm font-medium break-words">{item.thread.title}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {item.students} students · {item.upvotes} upvotes · {item.resolvedPct}% resolved
+          </p>
         </div>
       ) : (
         <p className="mt-3 text-sm text-muted-foreground">
-          Press “Discuss” on a card to highlight that question for the whole class.
+          Nothing urgent — the class is following along.
         </p>
       )}
     </div>

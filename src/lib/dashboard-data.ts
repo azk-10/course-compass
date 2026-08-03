@@ -218,3 +218,12 @@ export async function setQuiz(input: {
     .eq("id", input.sessionId);
   if (error) throw error;
 }
+
+/** Percentage of responding students needed before a thread auto-archives. */
+export async function setResolveThreshold(sessionId: string, threshold: number): Promise<void> {
+  const { error } = await supabase
+    .from("sessions")
+    .update({ resolve_threshold: Math.min(100, Math.max(10, Math.round(threshold))) })
+    .eq("id", sessionId);
+  if (error) throw error;
+}
