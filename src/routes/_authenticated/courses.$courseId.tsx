@@ -72,10 +72,55 @@ function CourseDashboard() {
   const [sessionTitle, setSessionTitle] = useState("");
   const [chatTab, setChatTab] = useState<ChatTab>("topics");
   const [railOpen, setRailOpen] = useState(false);
+  const [railWidth, setRailWidth] = useState(240);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [resizing, setResizing] = useState(false);
+
+  // Restore the teacher's last sidebar state (open/closed + width).
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 640px)");
+    const sync = () => setIsDesktop(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+
+    const savedOpen = localStorage.getItem("cc:rail-open");
+    setRailOpen(savedOpen === null ? window.innerWidth >= 1024 : savedOpen === "1");
+    const savedWidth = Number(localStorage.getItem("cc:rail-width"));
+    if (savedWidth >= 180 && savedWidth <= 420) setRailWidth(savedWidth);
+
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
-    setRailOpen(window.innerWidth >= 1024);
-  }, []);
+    localStorage.setItem("cc:rail-open", railOpen ? "1" : "0");
+  }, [railOpen]);
+
+  // Drag-to-resize the sidebar on pointer devices.
+  useEffect(() => {
+    if (!resizing) return;
+    const move = (event: PointerEvent) => {
+      const next = Math.min(420, Math.max(180, event.clientX));
+      setRailWidth(next);
+    };
+    const stop = () => {
+      setResizing(false);
+      setRailWidth((width) => {
+        localStorage.setItem("cc:rail-width", String(width));
+        return width;
+      });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+  }, [resizing]);
+
 
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const activeCourse = coursesQuery.data?.find((course) => course.id === courseId) ?? null;
