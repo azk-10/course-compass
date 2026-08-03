@@ -41,6 +41,44 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_teacher: boolean
+          sender_label: string
+          session_id: string
+          teacher_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_teacher?: boolean
+          sender_label: string
+          session_id: string
+          teacher_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_teacher?: boolean
+          sender_label?: string
+          session_id?: string
+          teacher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
