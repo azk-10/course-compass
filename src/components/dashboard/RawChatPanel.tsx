@@ -1,31 +1,48 @@
 import { useState } from "react";
-import { MessageSquare, ShieldAlert } from "lucide-react";
+import { HelpCircle, MessageSquare, Coffee, ShieldAlert, Wrench } from "lucide-react";
 
-import { CATEGORY_META, toCategory } from "@/lib/classify";
+import { CATEGORY_META, toCategory, type Category } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
+
+type Tab = "all" | Category;
+
+const TABS: { key: Tab; label: string; icon: typeof MessageSquare }[] = [
+  { key: "all", label: "All chat", icon: MessageSquare },
+  { key: "question", label: "Questions", icon: HelpCircle },
+  { key: "technical", label: "Technical", icon: Wrench },
+  { key: "general", label: "Off-topic", icon: Coffee },
+  { key: "spam", label: "Spam", icon: ShieldAlert },
+];
 
 /**
  * The raw Zoom-style transcript. The teacher never needs it to run the class,
- * but it is the place to read exactly what a student wrote — including the
- * spam that is filtered out of the thread board.
+ * but it is the place to read exactly what a student wrote — split by category
+ * so spam, technical problems and off-topic chatter each have their own tab.
  */
 export function RawChatPanel({ messages }: { messages: ChatMessage[] }) {
-  const [tab, setTab] = useState<"all" | "spam">("all");
+  const [tab, setTab] = useState<Tab>("all");
   const students = messages.filter((message) => !message.is_teacher);
-  const spam = students.filter((message) => toCategory(message.category) === "spam");
-  const shown = (tab === "spam" ? spam : students).slice(-200).reverse();
+  const countFor = (key: Tab) =>
+    key === "all"
+      ? students.length
+      : students.filter((message) => toCategory(message.category) === key).length;
+  const shown = (
+    tab === "all"
+      ? students
+      : students.filter((message) => toCategory(message.category) === tab)
+  )
+    .slice(-200)
+    .reverse();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-1 px-3 pb-2">
-        <TabButton active={tab === "all"} onClick={() => setTab("all")}>
-          <MessageSquare className="size-3.5" /> All chat
-          <Count value={students.length} />
-        </TabButton>
-        <TabButton active={tab === "spam"} onClick={() => setTab("spam")}>
-          <ShieldAlert className="size-3.5" /> Spam
-          <Count value={spam.length} />
-        </TabButton>
+      <div className="flex flex-wrap items-center gap-1 px-3 pb-2">
+        {TABS.map(({ key, label, icon: Icon }) => (
+          <TabButton key={key} active={tab === key} onClick={() => setTab(key)}>
+            <Icon className="size-3.5 shrink-0" /> {label}
+            <Count value={countFor(key)} />
+          </TabButton>
+        ))}
       </div>
 
       <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-4">
