@@ -86,3 +86,20 @@ export function pollVerdict(poll: Poll, responses: PollResponse[]) {
   const no = mine.length - yes;
   return { yes, no, total: mine.length, majorityNo: mine.length >= 3 && no > yes };
 }
+
+/**
+ * True when more than half of the recent technical-issue messages are about
+ * audio — the class is probably not hearing the teacher at all.
+ */
+export function shouldOpenAudioPoll(messages: ChatMessage[], windowMinutes = 5): boolean {
+  const cutoff = Date.now() - windowMinutes * 60_000;
+  const technical = messages.filter(
+    (message) =>
+      !message.is_teacher &&
+      toCategory(message.category) === "technical" &&
+      new Date(message.created_at).getTime() >= cutoff,
+  );
+  if (technical.length < 3) return false;
+  const audio = technical.filter((message) => isAudioIssue(message.body)).length;
+  return audio / technical.length > 0.5;
+}
