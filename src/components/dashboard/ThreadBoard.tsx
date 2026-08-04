@@ -90,10 +90,14 @@ export function ThreadBoard({
 }) {
   const [showSpam, setShowSpam] = useState(false);
   const listRef = useFlipList(stats.map((item) => item.thread.id).join(","));
-  const real = stats.filter((item) => item.category !== "spam");
-  const spam = stats.filter((item) => item.category === "spam");
+  // Off-topic chatter and spam never belong on the topic board — they live in
+  // their own sidebar tabs and only appear here inside the collapsed drawer.
+  const isAside = (item: ThreadStats) => item.category === "spam" || item.category === "general";
+  const real = stats.filter((item) => !isAside(item));
+  const spam = stats.filter(isAside);
   const active = real.filter((item) => item.health !== "settled");
   const settled = real.filter((item) => item.health === "settled");
+
 
   if (isLoading) {
     return <p className="flex-1 px-6 py-8 text-sm text-muted-foreground">Reading the classroom…</p>;
