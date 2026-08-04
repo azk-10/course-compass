@@ -63,7 +63,10 @@ export function StudentChat({
   const [now, setNow] = useState(() => Date.now());
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [myReaction, setMyReaction] = useState<ReactionKind | null>(null);
+  const bucket = useRef(createTokenBucket(3, Math.max(settings.cooldown_ms, 500)));
+  const burstGuard = useRef(createBurstGuard(BURST_LIMIT_PER_MINUTE, 60_000));
   const classify = useServerFn(classifyMessage);
+
 
   const { messages, isLoading, connection } = useLiveMessages(liveClass.id);
   const { threads, participants, votes, feedback, stats } = useThreads(
