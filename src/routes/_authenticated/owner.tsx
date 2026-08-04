@@ -7,6 +7,7 @@ import {
   Building2,
   CreditCard,
   GraduationCap,
+  Inbox,
   LayoutDashboard,
   Loader2,
   Settings2,
@@ -22,6 +23,7 @@ import { getOwnerStats, listAccounts, resetUsage } from "@/lib/owner.functions";
 import { AccountsTable } from "@/components/owner/AccountsTable";
 import { AiAnalyticsPanel } from "@/components/owner/AiAnalyticsPanel";
 import { BillingTable } from "@/components/owner/BillingTable";
+import { RequestsPanel } from "@/components/owner/RequestsPanel";
 import { SettingsPanel } from "@/components/owner/SettingsPanel";
 
 export const Route = createFileRoute("/_authenticated/owner")({
