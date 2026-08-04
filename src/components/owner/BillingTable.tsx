@@ -120,7 +120,10 @@ export function BillingTable() {
                       const input = prompt("Discount in dollars", "0");
                       if (input === null) return;
                       const dollars = Number(input);
-                      if (!Number.isFinite(dollars) || dollars < 0) return toast.error("Invalid amount");
+                      if (!Number.isFinite(dollars) || dollars < 0) {
+                        toast.error("Invalid amount");
+                        return;
+                      }
                       mutate.mutate({ id: inv.id, discountCents: Math.round(dollars * 100) });
                     }}
                     className="mt-1 block text-[0.7rem] font-semibold text-muted-foreground underline"
