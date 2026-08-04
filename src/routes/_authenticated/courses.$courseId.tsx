@@ -402,7 +402,7 @@ function CourseDashboard() {
           <div className="px-4 pb-3">
             <p className="text-[0.62rem] tracking-[0.16em] uppercase opacity-60">Class chat</p>
             <p className="mt-1 text-xs opacity-60">
-              Pick a tab to read it in the main view — counts keep climbing live.
+              Pick a tab to read it in the main view — badges show what is unread and unresolved.
             </p>
           </div>
         )}
