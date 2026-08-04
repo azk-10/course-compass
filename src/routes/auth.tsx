@@ -281,37 +281,57 @@ function AuthPage() {
                   className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="text-xs font-medium text-muted-foreground">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
+              {mode !== "reset" && (
+                <div>
+                  <label htmlFor="password" className="text-xs font-medium text-muted-foreground">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+              )}
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("reset");
+                    setSent(false);
+                  }}
+                  className="text-xs font-medium text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+                >
+                  Forgot your password?
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={busy}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {busy && <Loader2 className="size-4 animate-spin" />}
-                {mode === "signin"
-                  ? "Sign in"
-                  : isOwner
-                    ? "Register organization"
-                    : "Create account"}
+                {mode === "reset"
+                  ? "Send reset link"
+                  : mode === "signin"
+                    ? "Sign in"
+                    : isOwner
+                      ? "Register organization"
+                      : "Create account"}
               </button>
             </form>
           )}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {mode === "signin" ? "New here?" : "Already have an account?"}{" "}
+            {mode === "reset"
+              ? "Remembered it?"
+              : mode === "signin"
+                ? "New here?"
+                : "Already have an account?"}{" "}
             <button
               onClick={() => {
                 setMode(mode === "signin" ? "signup" : "signin");
@@ -322,6 +342,7 @@ function AuthPage() {
               {mode === "signin" ? "Create an account" : "Sign in"}
             </button>
           </p>
+
 
           {!isStudent && (
             <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
