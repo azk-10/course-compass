@@ -3,7 +3,7 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-import { localClassify, toCategory, type Category } from "@/lib/classify";
+import { isSmallTalk, localClassify, toCategory, type Category } from "@/lib/classify";
 import { textSimilarity } from "@/lib/grouping";
 
 const JudgeInput = z.object({
