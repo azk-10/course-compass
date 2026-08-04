@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
   CheckCircle2,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { CATEGORY_META } from "@/lib/classify";
+import { readDevMode } from "@/lib/logs";
 import type { ChatMessage } from "@/lib/live-chat";
 import type { ThreadStats } from "@/lib/threads";
 
@@ -45,6 +46,36 @@ const HEALTH = {
 } as const;
 
 /**
+ * Threads reorder constantly as priority shifts, so movement is animated with a
+ * FLIP pass: measure, let React reorder, then play the delta back.
+ */
+function useFlipList(signature: string) {
+  const ref = useRef<HTMLUListElement>(null);
+  const positions = useRef(new Map<string, number>());
+
+  useEffect(() => {
+    const list = ref.current;
+    if (!list) return;
+    const children = Array.from(list.children) as HTMLElement[];
+    for (const child of children) {
+      const key = child.dataset["threadId"];
+      if (!key) continue;
+      const top = child.getBoundingClientRect().top;
+      const previous = positions.current.get(key);
+      if (previous !== undefined && Math.abs(previous - top) > 1) {
+        child.animate(
+          [{ transform: `translateY(${previous - top}px)` }, { transform: "translateY(0)" }],
+          { duration: 320, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+        );
+      }
+      positions.current.set(key, top);
+    }
+  }, [signature]);
+
+  return ref;
+}
+
+/**
  * The teacher only reads merged threads, ordered by classroom priority.
  * No teacher action is required — students drive every state change.
  */
@@ -58,6 +89,7 @@ export function ThreadBoard({
   isLoading?: boolean;
 }) {
   const [showSpam, setShowSpam] = useState(false);
+  const listRef = useFlipList(stats.map((item) => item.thread.id).join(","));
   const real = stats.filter((item) => item.category !== "spam");
   const spam = stats.filter((item) => item.category === "spam");
   const active = real.filter((item) => item.health !== "settled");
@@ -76,7 +108,7 @@ export function ThreadBoard({
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-      <ul className="grid gap-3">
+      <ul ref={listRef} className="grid gap-3">
         {active.map((item) => (
           <ThreadCard key={item.thread.id} item={item} messages={messages} />
         ))}
