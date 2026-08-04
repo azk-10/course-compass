@@ -156,6 +156,32 @@ export function ClassroomSettingsPanel({
                     className="mt-3 w-full accent-[var(--accent)]"
                   />
                   <p className="mt-2 text-[11px] text-muted-foreground">{limit.hint}</p>
+                  {limit.unit === "%" && (
+                    <p className="mt-2 rounded-lg bg-muted/60 px-2.5 py-2 text-[11px] leading-relaxed">
+                      {studentsOnline > 0 ? (
+                        <>
+                          <span className="font-semibold tabular-nums text-accent">
+                            {Math.max(1, Math.ceil((value / 100) * studentsOnline))} of{" "}
+                            {studentsOnline}
+                          </span>{" "}
+                          <span className="text-muted-foreground">
+                            {studentsOnline === 1 ? "student" : "students"} online right now
+                            {key === "resolve_pct"
+                              ? " must mark a topic resolved before it auto-archives."
+                              : key === "question_confirm_pct"
+                                ? " must join a topic before the rest are asked to confirm."
+                                : " must report the same issue before the check runs."}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          No students online yet — this will show the exact head count once your
+                          session fills up.
+                        </span>
+                      )}
+                    </p>
+                  )}
+
                 </div>
               )}
             </div>
