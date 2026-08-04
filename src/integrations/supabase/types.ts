@@ -14,6 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          organization_id: string | null
+          session_id: string | null
+          teacher_id: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind: string
+          organization_id?: string | null
+          session_id?: string | null
+          teacher_id?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          organization_id?: string | null
+          session_id?: string | null
+          teacher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classroom_settings: {
+        Row: {
+          allow_teacher_override: boolean
+          archive_minutes: number
+          audio_detect_pct: number
+          cooldown_ms: number
+          created_at: string
+          followup_seconds: number
+          id: string
+          organization_id: string | null
+          question_confirm_pct: number
+          resolve_pct: number
+          spam_sensitivity: number
+          teacher_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allow_teacher_override?: boolean
+          archive_minutes?: number
+          audio_detect_pct?: number
+          cooldown_ms?: number
+          created_at?: string
+          followup_seconds?: number
+          id?: string
+          organization_id?: string | null
+          question_confirm_pct?: number
+          resolve_pct?: number
+          spam_sensitivity?: number
+          teacher_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allow_teacher_override?: boolean
+          archive_minutes?: number
+          audio_detect_pct?: number
+          cooldown_ms?: number
+          created_at?: string
+          followup_seconds?: number
+          id?: string
+          organization_id?: string | null
+          question_confirm_pct?: number
+          resolve_pct?: number
+          spam_sensitivity?: number
+          teacher_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classroom_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           accent: string
@@ -102,6 +199,7 @@ export type Database = {
       }
       messages: {
         Row: {
+          ai_failed: boolean
           body: string
           category: string
           confidence: number
@@ -117,6 +215,7 @@ export type Database = {
           thread_id: string | null
         }
         Insert: {
+          ai_failed?: boolean
           body: string
           category?: string
           confidence?: number
@@ -132,6 +231,7 @@ export type Database = {
           thread_id?: string | null
         }
         Update: {
+          ai_failed?: boolean
           body?: string
           category?: string
           confidence?: number
@@ -316,8 +416,82 @@ export type Database = {
           },
         ]
       }
+      session_blocks: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          session_id: string
+          student_label: string
+          teacher_id: string
+          until: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id: string
+          student_label: string
+          teacher_id: string
+          until?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id?: string
+          student_label?: string
+          teacher_id?: string
+          until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_blocks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          session_id: string
+          student_label: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          session_id: string
+          student_label: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id?: string
+          student_label?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_reactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
+          chat_paused: boolean
           course_id: string
           ended_at: string | null
           id: string
@@ -333,6 +507,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          chat_paused?: boolean
           course_id: string
           ended_at?: string | null
           id?: string
@@ -348,6 +523,7 @@ export type Database = {
           title?: string
         }
         Update: {
+          chat_paused?: boolean
           course_id?: string
           ended_at?: string | null
           id?: string
@@ -494,6 +670,8 @@ export type Database = {
       }
       threads: {
         Row: {
+          ai_failed: boolean
+          archived_at: string | null
           category: string
           course_id: string | null
           created_at: string
@@ -505,6 +683,8 @@ export type Database = {
           title: string
         }
         Insert: {
+          ai_failed?: boolean
+          archived_at?: string | null
           category?: string
           course_id?: string | null
           created_at?: string
@@ -516,6 +696,8 @@ export type Database = {
           title: string
         }
         Update: {
+          ai_failed?: boolean
+          archived_at?: string | null
           category?: string
           course_id?: string | null
           created_at?: string
@@ -548,11 +730,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_post: {
+        Args: { _label: string; _session_id: string }
+        Returns: boolean
+      }
+      course_by_code: {
+        Args: { _code: string }
+        Returns: {
+          id: string
+          is_crash: boolean
+          join_code: string
+          teacher_id: string
+          term: string
+          title: string
+        }[]
+      }
       generate_course_code: { Args: never; Returns: string }
+      in_session: { Args: { _session: string }; Returns: boolean }
       is_org_owner: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_org_staff: {
+        Args: { _org: string; _user_id: string }
+        Returns: boolean
+      }
+      is_session_student: { Args: { _session: string }; Returns: boolean }
+      is_session_teacher: { Args: { _session: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

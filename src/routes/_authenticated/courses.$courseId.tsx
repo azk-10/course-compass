@@ -8,6 +8,7 @@ import {
   Compass,
   PanelLeftClose,
   PanelLeftOpen,
+  Pause,
   Play,
   Square,
   Trash2,
@@ -20,12 +21,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChatTabList, RawChatList, type ChatTab } from "@/components/dashboard/RawChatPanel";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import { StudentApprovals } from "@/components/dashboard/StudentApprovals";
+import { QuickStats, StudentsOnline, TopThread } from "@/components/dashboard/SessionRail";
+import { ClassPulse } from "@/components/dashboard/ClassPulse";
+import { ClassroomSettingsPanel } from "@/components/dashboard/ClassroomSettingsPanel";
+import { SafetyMenu } from "@/components/dashboard/SafetyMenu";
+import { useSessionPulse } from "@/hooks/useSessionPulse";
+import { fetchMyProfile } from "@/lib/org";
+import { readDevMode, setDevMode } from "@/lib/logs";
 import {
-  QuickStats,
-  StudentsOnline,
-  ThreadSettings,
-  TopThread,
-} from "@/components/dashboard/SessionRail";
+  liftBlock,
+  muteStudent,
+  removeStudent,
+  setChatPaused,
+} from "@/lib/moderation";
+import {
+  DEFAULT_SETTINGS,
+  fetchSettings,
+  saveSettings,
+  type ClassroomSettings,
+} from "@/lib/settings";
 import { useLiveMessages } from "@/hooks/useLiveMessages";
 import { usePolls } from "@/hooks/usePolls";
 import { useThreads } from "@/hooks/useThreads";
@@ -75,6 +89,10 @@ function CourseDashboard() {
   const [railWidth, setRailWidth] = useState(240);
   const [isDesktop, setIsDesktop] = useState(false);
   const [resizing, setResizing] = useState(false);
+  const [settingsLevel, setSettingsLevel] = useState<"org" | "teacher">("teacher");
+  const [devMode, setDev] = useState(false);
+
+  useEffect(() => setDev(readDevMode()), []);
 
   // Restore the teacher's last sidebar state (open/closed + width).
   useEffect(() => {
@@ -154,6 +172,83 @@ function CourseDashboard() {
   );
   const topThread = threadStats.find((item) => item.health !== "settled") ?? null;
 
+  const { blocks, reactions } = useSessionPulse(session?.id ?? null);
+
+  const profileQuery = useQuery({ queryKey: ["my-profile"], queryFn: fetchMyProfile });
+  const profile = profileQuery.data ?? null;
+  const isStaff = profile?.role === "owner" || profile?.role === "admin";
+
+  useEffect(() => {
+    if (isStaff) setSettingsLevel("org");
+  }, [isStaff]);
+
+  const settingsQuery = useQuery({
+    queryKey: ["classroom-settings", profile?.id, profile?.organization_id],
+    queryFn: () =>
+      fetchSettings({
+        organizationId: profile?.organization_id ?? null,
+        teacherId: profile!.id,
+      }),
+    enabled: Boolean(profile?.id),
+  });
+  const settings: ClassroomSettings = settingsQuery.data ?? DEFAULT_SETTINGS;
+
+  const settingsMutation = useMutation({
+    mutationFn: async (patch: Partial<ClassroomSettings>) => {
+      if (!profile) return;
+      await saveSettings(
+        {
+          organizationId: profile.organization_id,
+          teacherId: profile.id,
+          level: settingsLevel,
+        },
+        patch,
+      );
+      if (patch.resolve_pct !== undefined && session) {
+        await setResolveThreshold(session.id, patch.resolve_pct);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["classroom-settings"] });
+      invalidateSessions();
+    },
+    onError: () => toast.error("Could not save the setting"),
+  });
+
+  const safetyMutation = useMutation({
+    mutationFn: async (
+      action:
+        | { type: "pause"; paused: boolean }
+        | { type: "mute"; label: string; minutes: number }
+        | { type: "remove"; label: string }
+        | { type: "lift"; label: string },
+    ) => {
+      if (!session || !profile) return;
+      const base = { sessionId: session.id, teacherId: profile.id };
+      if (action.type === "pause") return setChatPaused(session.id, action.paused, profile.id);
+      if (action.type === "mute")
+        return muteStudent({ ...base, label: action.label, minutes: action.minutes });
+      if (action.type === "remove") return removeStudent({ ...base, label: action.label });
+      return liftBlock({ ...base, label: action.label });
+    },
+    onSuccess: (_data, action) => {
+      invalidateSessions();
+      queryClient.invalidateQueries({ queryKey: ["blocks", session?.id] });
+      toast.success(
+        action.type === "pause"
+          ? action.paused
+            ? "Chat paused"
+            : "Chat resumed"
+          : action.type === "mute"
+            ? `${action.label} muted`
+            : action.type === "remove"
+              ? `${action.label} removed`
+              : "Restriction lifted",
+      );
+    },
+    onError: () => toast.error("Could not apply that control"),
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel(`enrollments-${courseId}`)
@@ -192,12 +287,6 @@ function CourseDashboard() {
       toast.success("Session ended");
     },
     onError: () => toast.error("Could not end the session"),
-  });
-
-  const thresholdMutation = useMutation({
-    mutationFn: (value: number) => setResolveThreshold(session!.id, value),
-    onSuccess: invalidateSessions,
-    onError: () => toast.error("Could not save the setting"),
   });
 
   const archiveMutation = useMutation({
@@ -370,6 +459,20 @@ function CourseDashboard() {
                 {connectionLabel}
               </span>
             )}
+            {session && (
+              <SafetyMenu
+                paused={session.chat_paused}
+                students={online}
+                blocks={blocks}
+                busy={safetyMutation.isPending}
+                onPause={(paused) => safetyMutation.mutate({ type: "pause", paused })}
+                onMute={(label, minutes) =>
+                  safetyMutation.mutate({ type: "mute", label, minutes })
+                }
+                onRemove={(label) => safetyMutation.mutate({ type: "remove", label })}
+                onLift={(label) => safetyMutation.mutate({ type: "lift", label })}
+              />
+            )}
             <button
               onClick={() => archiveMutation.mutate(!isArchived)}
               disabled={archiveMutation.isPending}
@@ -394,6 +497,12 @@ function CourseDashboard() {
 
         {session ? (
           <>
+            {session.chat_paused && (
+              <div className="flex items-center gap-2 border-b border-border bg-warning/12 px-4 py-3 text-sm font-medium text-warning sm:px-6">
+                <Pause className="size-4" />
+                Chat is paused — students cannot send messages right now.
+              </div>
+            )}
             {audioAlert && (
               <div className="flex items-center gap-2 border-b border-border bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive sm:px-6">
                 <Volume2 className="size-4" />
@@ -485,13 +594,20 @@ function CourseDashboard() {
           pendingId={decidingId}
           onDecide={(id, status) => decideMutation.mutate({ id, status })}
         />
-        {session && (
-          <ThreadSettings
-            threshold={threshold}
-            disabled={thresholdMutation.isPending}
-            onChange={(value) => thresholdMutation.mutate(value)}
-          />
-        )}
+        {session && <ClassPulse reactions={reactions} />}
+        <ClassroomSettingsPanel
+          settings={settings}
+          saving={settingsMutation.isPending}
+          level={settingsLevel}
+          canChooseLevel={Boolean(isStaff && profile?.organization_id)}
+          onLevelChange={setSettingsLevel}
+          onChange={(patch) => settingsMutation.mutate(patch)}
+          devMode={devMode}
+          onDevMode={(on) => {
+            setDev(on);
+            setDevMode(on);
+          }}
+        />
         <QuickStats
           messages={messages}
           online={online.length}

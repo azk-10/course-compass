@@ -20,6 +20,7 @@ export type LiveClass = {
   quiz_answer_type: string | null;
   quiz_options: string[];
   resolve_threshold: number;
+  chat_paused: boolean;
   started_at: string;
 };
 
@@ -34,14 +35,11 @@ const COURSE_FIELDS = "id, title, term, is_crash, teacher_id, join_code";
 
 /** Students never browse a catalogue — they look their course up by its code. */
 export async function fetchCourseByCode(code: string): Promise<StudentCourse | null> {
-  const { data, error } = await supabase
-    .from("courses")
-    .select(COURSE_FIELDS)
-    .eq("join_code", code.trim().toUpperCase())
-    .eq("status", "active")
-    .maybeSingle();
+  // Courses are private; a dedicated lookup exposes only the joining essentials.
+  const { data, error } = await supabase.rpc("course_by_code", { _code: code.trim() });
   if (error) throw error;
-  return data ?? null;
+  const row = (data ?? [])[0];
+  return row ? (row as StudentCourse) : null;
 }
 
 export async function fetchCoursesByIds(ids: string[]): Promise<StudentCourse[]> {
@@ -56,7 +54,7 @@ export async function fetchLiveClass(courseId: string): Promise<LiveClass | null
   const { data, error } = await supabase
     .from("sessions")
     .select(
-      "id, course_id, teacher_id, title, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, resolve_threshold, started_at",
+      "id, course_id, teacher_id, title, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, resolve_threshold, chat_paused, started_at",
     )
     .eq("course_id", courseId)
     .eq("status", "live")
