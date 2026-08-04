@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { ChatTabList, RawChatList, type ChatTab } from "@/components/dashboard/RawChatPanel";
+import { pageMeta } from "@/lib/seo";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import {
   MAX_RETAINED,
@@ -39,24 +40,16 @@ import {
 } from "@/lib/demo-engine";
 
 export const Route = createFileRoute("/demo")({
-  head: () => ({
-    meta: [
-      { title: "Live Demo — AI Classroom Chat by Course Compass" },
-      {
-        name: "description",
-        content:
-          "Run a real 1000-student lecture in your browser: watch AI merge Urdu and English questions, filter spam and surface audio issues live.",
-      },
-      { property: "og:title", content: "Live Demo — AI Classroom Chat" },
-      {
-        property: "og:description",
-        content:
-          "An interactive simulation of a live class: automatic merging, classification, spam filtering and thread priority in real time.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Live Demo",
+      description:
+        "Run a real 1000-student lecture in your browser: watch AI merge Urdu and English questions, filter spam and surface audio issues live.",
+      path: "/demo",
+      ogTitle: "Live Demo — AI Classroom Chat",
+      ogDescription:
+        "An interactive simulation of a live class: automatic merging, classification, spam filtering and thread priority in real time.",
+    }),
   component: DemoPage,
 });
 
