@@ -177,7 +177,7 @@ function AuthPage() {
             <p className="rounded-lg border border-border bg-secondary p-4 text-sm">
               Confirmation email sent to <strong>{email}</strong>. Click the link to finish
               setting up your account.
-              {needsOrgPicker && " Your organization owner then approves you."}
+              {org && ` The owner of ${org.name} then approves you.`}
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
