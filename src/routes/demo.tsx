@@ -492,6 +492,7 @@ function ClassSizeSlider({ value, onChange }: { value: number; onChange: (size: 
         step={1}
         value={index}
         aria-label="Simulated class size"
+        aria-valuetext={`${value} students`}
         onChange={(event) => onChange(SIZES[Number(event.target.value)] ?? 250)}
         className="mt-2 w-full accent-[var(--accent)]"
       />
