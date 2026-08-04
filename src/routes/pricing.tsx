@@ -3,6 +3,7 @@ import { ArrowRight, Check } from "lucide-react";
 
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteNav } from "@/components/site/SiteNav";
+import { pageMeta } from "@/lib/seo";
 import { PLANS } from "@/lib/plans";
 
 export const Route = createFileRoute("/pricing")({

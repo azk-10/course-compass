@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteNav } from "@/components/site/SiteNav";
+import { pageMeta } from "@/lib/seo";
 import { submitLead } from "@/lib/leads.functions";
 import { PLANS, type PlanId } from "@/lib/plans";
 

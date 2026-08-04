@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { ChatTabList, RawChatList, type ChatTab } from "@/components/dashboard/RawChatPanel";
+import { pageMeta } from "@/lib/seo";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import {
   MAX_RETAINED,

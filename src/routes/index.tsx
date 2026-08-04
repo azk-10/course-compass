@@ -3,6 +3,7 @@ import { ArrowRight, Layers, Languages, ShieldCheck, Sparkles } from "lucide-rea
 
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteNav } from "@/components/site/SiteNav";
+import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () => ({

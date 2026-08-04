@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { Loader2, ShieldAlert } from "lucide-react";
+
+import { pageMeta } from "@/lib/seo";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
