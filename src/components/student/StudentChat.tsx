@@ -226,6 +226,13 @@ export function StudentChat({
       refresh();
     },
     onError: (error: Error) => {
+      // The database enforces the real limit; surface it in plain language.
+      const limited = rateLimitMessage(error);
+      if (limited) {
+        setCooldownUntil(Date.now() + Math.max(settings.cooldown_ms, 2_000));
+        toast.info(limited);
+        return;
+      }
       logEvent({
         kind: "ai_failure",
         sessionId: liveClass.id,
@@ -233,6 +240,7 @@ export function StudentChat({
       });
       toast.error(error.message || "Could not send your message");
     },
+
   });
 
   const clarifyMutation = useMutation({
