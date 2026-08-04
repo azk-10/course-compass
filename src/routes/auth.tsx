@@ -53,15 +53,20 @@ function AuthPage() {
   const needsOrgPicker = role === "teacher" && mode === "signup";
 
   useEffect(() => {
-    const go = () => navigate({ to: isStudent ? "/student" : "/courses", replace: true });
+    const go = async () => {
+      const fallback = isStudent ? "/student" : "/courses";
+      const to = await resolveLandingRoute(fallback);
+      navigate({ to, replace: true });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) go();
+      if (data.session) void go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) go();
+      if (session) void go();
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate, isStudent]);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
