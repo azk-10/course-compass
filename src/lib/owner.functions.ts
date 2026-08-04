@@ -216,7 +216,7 @@ export const updateSubscription = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existing) {
-      const { error } = await supabaseAdmin.from("subscriptions").update(patch).eq("id", existing.id);
+      const { error } = await supabaseAdmin.from("subscriptions").update(patch as never).eq("id", existing.id);
       if (error) throw new Error(error.message);
     } else {
       const { error } = await supabaseAdmin.from("subscriptions").insert({
@@ -521,8 +521,9 @@ export const updatePlan = createServerFn({ method: "POST" })
     const { assertOwner } = await import("@/lib/owner.server");
     await assertOwner(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { id, ...patch } = data;
-    const { error } = await supabaseAdmin.from("plans").update(patch).eq("id", id);
+    const { id, ...rest } = data;
+    const patch = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined));
+    const { error } = await supabaseAdmin.from("plans").update(patch as never).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
@@ -551,7 +552,7 @@ export const updateSetting = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("system_settings")
-      .upsert({ key: data.key, value: data.value }, { onConflict: "key" });
+      .upsert({ key: data.key, value: data.value as never }, { onConflict: "key" });
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
