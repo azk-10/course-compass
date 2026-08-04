@@ -8,7 +8,6 @@ import {
   BookOpen,
   Compass,
   Copy,
-  Hourglass,
   LogOut,
   Plus,
   Zap,
