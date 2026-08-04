@@ -72,3 +72,41 @@ export async function setTeacherApproval(teacherId: string, status: "approved" |
     .eq("id", teacherId);
   if (error) throw error;
 }
+
+/** A single organization by id — used to name the pending-approval screen. */
+export async function fetchOrganization(orgId: string): Promise<Organization | null> {
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("id, name, owner_id")
+    .eq("id", orgId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
+}
+
+/**
+ * Attach the signed-in teacher to an organization. A database trigger forces
+ * the account back into `pending`, so only the owner can approve it.
+ */
+export async function requestOrganizationJoin(orgId: string) {
+  const { data: auth } = await supabase.auth.getUser();
+  const id = auth.user?.id;
+  if (!id) throw new Error("Not signed in");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ organization_id: orgId })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+/** Withdraw the request and continue as an independent teacher. */
+export async function leaveOrganization() {
+  const { data: auth } = await supabase.auth.getUser();
+  const id = auth.user?.id;
+  if (!id) throw new Error("Not signed in");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ organization_id: null })
+    .eq("id", id);
+  if (error) throw error;
+}

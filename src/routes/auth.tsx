@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { searchOrganizations, type Organization } from "@/lib/org";
+import { OrganizationPicker } from "@/components/org/OrganizationPicker";
+import type { Organization } from "@/lib/org";
 
 type Role = "teacher" | "student" | "owner";
 
@@ -44,9 +45,8 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
-  const [orgQuery, setOrgQuery] = useState("");
-  const [orgs, setOrgs] = useState<Organization[]>([]);
   const [org, setOrg] = useState<Organization | null>(null);
+  const [independent, setIndependent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -63,28 +63,13 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, isStudent]);
 
-  useEffect(() => {
-    if (!needsOrgPicker) return;
-    let cancelled = false;
-    const timer = setTimeout(() => {
-      searchOrganizations(orgQuery)
-        .then((rows) => {
-          if (!cancelled) setOrgs(rows);
-        })
-        .catch(() => undefined);
-    }, 200);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [orgQuery, needsOrgPicker]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (needsOrgPicker && !org) {
-      toast.error("Pick the organization you belong to");
+    if (needsOrgPicker && !org && !independent) {
+      toast.error("Pick your organization, or continue as an independent teacher");
       return;
     }
+
     if (isOwner && mode === "signup" && !orgName.trim()) {
       toast.error("Give your organization a name");
       return;
@@ -147,7 +132,7 @@ function AuthPage() {
         ? "Sign in once — then enrol with your teacher's course code."
         : isOwner
           ? "You will own the organization and approve every teacher who joins it."
-          : "Pick your school, college or academy — its owner approves your account.";
+          : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
@@ -192,7 +177,7 @@ function AuthPage() {
             <p className="rounded-lg border border-border bg-secondary p-4 text-sm">
               Confirmation email sent to <strong>{email}</strong>. Click the link to finish
               setting up your account.
-              {needsOrgPicker && " Your organization owner then approves you."}
+              {org && ` The owner of ${org.name} then approves you.`}
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -214,56 +199,36 @@ function AuthPage() {
 
               {needsOrgPicker && (
                 <div>
-                  <label htmlFor="orgSearch" className="text-xs font-medium text-muted-foreground">
+                  <label className="text-xs font-medium text-muted-foreground">
                     Your organization
                   </label>
-                  {org ? (
-                    <div className="mt-1 flex items-center gap-2 rounded-lg border border-input bg-secondary px-3 py-2.5 text-sm">
-                      <Building2 className="size-4 shrink-0 text-accent" />
-                      <span className="min-w-0 flex-1 truncate">{org.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => setOrg(null)}
-                        className="text-xs font-medium underline underline-offset-4"
-                      >
-                        Change
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mt-1 flex items-center gap-2 rounded-lg border border-input bg-card px-3 py-2.5">
-                        <Search className="size-4 shrink-0 text-muted-foreground" />
-                        <input
-                          id="orgSearch"
-                          value={orgQuery}
-                          onChange={(e) => setOrgQuery(e.target.value)}
-                          placeholder="Search schools, colleges, academies"
-                          className="w-full bg-transparent text-sm outline-none"
-                        />
-                      </div>
-                      <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
-                        {orgs.length === 0 && (
-                          <li className="px-1 py-2 text-xs text-muted-foreground">
-                            No organizations found. Ask your admin to register one.
-                          </li>
-                        )}
-                        {orgs.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => setOrg(item)}
-                              className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-secondary"
-                            >
-                              <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
-                              <span className="truncate">{item.name}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
+                  <div className="mt-1">
+                    <OrganizationPicker
+                      value={org}
+                      onSelect={(next) => {
+                        setOrg(next);
+                        if (next) setIndependent(false);
+                      }}
+                      independent={independent}
+                      onIndependent={(next) => {
+                        setIndependent(next);
+                        if (next) setOrg(null);
+                      }}
+                    />
+                  </div>
+                  {org && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      The owner of {org.name} reviews your request before your courses unlock.
+                    </p>
+                  )}
+                  {independent && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Independent teachers get full access straight away — no approval needed.
+                    </p>
                   )}
                 </div>
               )}
+
 
               <div>
                 <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
