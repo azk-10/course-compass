@@ -81,9 +81,16 @@ function Landing() {
     <div className="paper-ink min-h-screen">
       <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6">
         <span className="font-paper-display flex min-w-0 items-center gap-2 text-lg font-bold">
-          <Compass className="size-5 shrink-0" />
+          <img
+            src={courseCompassLogo}
+            alt="Course Compass logo"
+            width={28}
+            height={28}
+            className="size-7 shrink-0"
+          />
           <span className="truncate">Course Compass</span>
         </span>
+
         <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
           <Link
             to="/demo"
