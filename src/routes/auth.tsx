@@ -5,7 +5,8 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { searchOrganizations, type Organization } from "@/lib/org";
+import { OrganizationPicker } from "@/components/org/OrganizationPicker";
+import type { Organization } from "@/lib/org";
 
 type Role = "teacher" | "student" | "owner";
 
