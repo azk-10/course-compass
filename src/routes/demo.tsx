@@ -275,10 +275,7 @@ function DemoPage() {
         </main>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[13rem_minmax(0,1fr)_20rem]">
-          <nav
-            aria-label="Chat categories"
-            className="border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground lg:border-r lg:border-b-0"
-          >
+          <div className="border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground lg:border-r lg:border-b-0">
             <ChatTabList
               messages={view.messages}
               tab={tab}
@@ -286,7 +283,8 @@ function DemoPage() {
               threadCount={unresolved}
               sessionKey="demo"
             />
-          </nav>
+          </div>
+
 
           <main
             id="demo-main"
