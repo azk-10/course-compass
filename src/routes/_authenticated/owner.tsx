@@ -20,6 +20,7 @@ import { money } from "@/lib/billing";
 import { useIsPlatformOwner } from "@/lib/use-owner";
 import { getOwnerStats, listAccounts, resetUsage } from "@/lib/owner.functions";
 import { AccountsTable } from "@/components/owner/AccountsTable";
+import { AiAnalyticsPanel } from "@/components/owner/AiAnalyticsPanel";
 import { BillingTable } from "@/components/owner/BillingTable";
 import { SettingsPanel } from "@/components/owner/SettingsPanel";
 
@@ -201,7 +202,9 @@ function UsageSection() {
   const total = rows.reduce((sum, r) => sum + r.aiMessagesUsed, 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
+      <AiAnalyticsPanel />
+
       <div className="rounded-xl border border-border bg-card p-4">
         <p className="text-xs tracking-wide uppercase text-muted-foreground">
           Total AI messages this month
