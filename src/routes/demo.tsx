@@ -27,6 +27,7 @@ import {
   flushIntervalFor,
   pollIntervalFor,
 } from "@/lib/live-transport";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { buildStats } from "@/lib/threads";
 import {
   DEMO_COURSE,
