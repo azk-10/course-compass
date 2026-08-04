@@ -1,0 +1,74 @@
+import { supabase } from "@/integrations/supabase/client";
+
+export type Organization = { id: string; name: string; owner_id: string };
+
+export type TeacherProfile = {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  role: string;
+  approval_status: string;
+  organization_id: string | null;
+  created_at: string;
+};
+
+const PROFILE_FIELDS =
+  "id, display_name, email, role, approval_status, organization_id, created_at";
+
+/** Search organizations by name — used before a teacher has an account. */
+export async function searchOrganizations(term: string): Promise<Organization[]> {
+  let query = supabase.from("organizations").select("id, name, owner_id").order("name").limit(20);
+  const trimmed = term.trim();
+  if (trimmed) query = query.ilike("name", `%${trimmed}%`);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** The signed-in user's own profile (role, organization, approval state). */
+export async function fetchMyProfile(): Promise<TeacherProfile | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const id = auth.user?.id;
+  if (!id) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(PROFILE_FIELDS)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as TeacherProfile) ?? null;
+}
+
+/** The organization owned by the signed-in user, if any. */
+export async function fetchOwnedOrganization(): Promise<Organization | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const id = auth.user?.id;
+  if (!id) return null;
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("id, name, owner_id")
+    .eq("owner_id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
+}
+
+/** Every teacher attached to an organization, newest requests first. */
+export async function fetchOrgTeachers(orgId: string): Promise<TeacherProfile[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(PROFILE_FIELDS)
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as TeacherProfile[];
+}
+
+/** Owner decision on a teacher request. */
+export async function setTeacherApproval(teacherId: string, status: "approved" | "rejected") {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ approval_status: status })
+    .eq("id", teacherId);
+  if (error) throw error;
+}
