@@ -1,7 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Layers, Languages, ShieldCheck, Sparkles } from "lucide-react";
 
-import courseCompassLogo from "@/assets/course-compass-logo.png";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteNav } from "@/components/site/SiteNav";
 
 
 export const Route = createFileRoute("/")({
@@ -81,50 +82,10 @@ const toneClass = {
 
 function Landing() {
   return (
-    <div className="paper-ink min-h-screen">
-      <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6">
-        <span className="font-paper-display flex min-w-0 items-center gap-2 text-lg font-bold">
-          <img
-            src={courseCompassLogo}
-            alt="Course Compass logo"
-            width={28}
-            height={28}
-            className="size-7 shrink-0"
-          />
-          <span className="truncate">Course Compass</span>
-        </span>
+    <div className="paper-ink flex min-h-screen flex-col">
+      <SiteNav />
 
-        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <Link
-            to="/demo"
-            className="rounded-md px-3 py-2 text-sm font-semibold transition-colors hover:bg-secondary"
-          >
-            Live demo
-          </Link>
-          <Link
-            to="/student"
-            className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex"
-          >
-            Join as student
-          </Link>
-          <Link
-            to="/auth"
-            search={{ role: "owner" as const }}
-            className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex"
-          >
-            Organizations
-          </Link>
-          <Link
-            to="/auth"
-            search={{ role: "teacher" as const }}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
-          >
-            Teacher sign in
-          </Link>
-        </nav>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-6 pb-24">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 pb-24">
         <section className="grid items-center gap-12 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:py-20">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold tracking-[0.18em] uppercase">
@@ -240,6 +201,8 @@ function Landing() {
           </Link>
         </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

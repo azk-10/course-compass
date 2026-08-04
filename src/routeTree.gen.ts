@@ -20,6 +20,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
 
@@ -77,6 +78,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/admin/leads',
+  path: '/admin/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCoursesIndexRoute =
   AuthenticatedCoursesIndexRouteImport.update({
     id: '/courses/',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
 }
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
 }
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
 }
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/student'
     | '/terms'
+    | '/admin/leads'
     | '/courses/$courseId'
     | '/courses/'
   fileRoutesByTo: FileRoutesByTo
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/student'
     | '/terms'
+    | '/admin/leads'
     | '/courses/$courseId'
     | '/courses'
   id:
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/student'
     | '/terms'
+    | '/_authenticated/admin/leads'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/courses/'
   fileRoutesById: FileRoutesById
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/admin/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/courses/': {
       id: '/_authenticated/courses/'
       path: '/courses'
@@ -291,11 +310,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
 }
