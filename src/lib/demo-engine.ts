@@ -124,13 +124,13 @@ const MAX_MESSAGES = 320;
 const MAX_ZOOM = 60;
 
 let seq = 0;
+/** Monotonic across the whole module so ids stay unique even after a reset. */
 const uid = (prefix: string) => `${prefix}-${(seq += 1)}`;
 
 export const pick = <T,>(list: readonly T[]): T =>
   list[Math.floor(Math.random() * list.length)] as T;
 
 export function createDemoState(target = 250): DemoState {
-  seq = 0;
   return {
     studentsOnline: 0,
     targetStudents: target,
