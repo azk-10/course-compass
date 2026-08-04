@@ -185,21 +185,63 @@ function Landing() {
           ))}
         </section>
 
+        <section className="paper-rule mt-20 pt-10">
+          <h2 className="text-2xl font-bold">Why teachers switch the chat over</h2>
+          <div className="mt-8 grid gap-8 sm:grid-cols-3">
+            {[
+              {
+                title: "You answer the room, not the loudest student",
+                body: "Merged threads are ranked by how many students are stuck, so the biggest blocker is always at the top.",
+              },
+              {
+                title: "Nothing is lost",
+                body: "The raw transcript, including spam and off-topic chatter, stays one click away in the sidebar.",
+              },
+              {
+                title: "The class tells you when it's fixed",
+                body: "Students mark threads resolved or still confusing, and discussions archive themselves once the room agrees.",
+              },
+            ].map((benefit) => (
+              <div key={benefit.title}>
+                <h3 className="text-base font-bold">{benefit.title}</h3>
+                <p className="mt-2 text-sm/6 text-muted-foreground">{benefit.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="paper-rule mt-20 flex flex-wrap items-center justify-between gap-6 pt-10">
           <div>
             <h2 className="text-2xl font-bold">See it with 1000 simulated students</h2>
             <p className="mt-2 max-w-xl text-sm/6 text-muted-foreground">
               No sign-up. Launch the simulation, throw a question storm at it, and watch the feed
-              collapse into a handful of threads.
+              collapse into a handful of threads. When you're ready, we'll set up a pilot with your
+              own teachers.
             </p>
           </div>
-          <Link
-            to="/demo"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
-          >
-            Launch demo <ArrowRight className="size-4" />
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/demo"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
+            >
+              Launch demo <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-2 rounded-md border border-foreground/20 px-6 py-3.5 text-sm font-bold transition-colors hover:bg-secondary active:scale-[0.97]"
+            >
+              See pricing
+            </Link>
+            <Link
+              to="/contact"
+              search={{ plan: "academy" as const }}
+              className="inline-flex items-center gap-2 rounded-md border border-foreground/20 px-6 py-3.5 text-sm font-bold transition-colors hover:bg-secondary active:scale-[0.97]"
+            >
+              Contact sales
+            </Link>
+          </div>
         </section>
+
       </main>
 
       <SiteFooter />
