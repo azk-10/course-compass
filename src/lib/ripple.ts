@@ -4,11 +4,14 @@ export function installRipple() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return () => {};
 
   const onPointerDown = (event: PointerEvent) => {
+    // Respect the in-app reduced-motion toggle, checked at click time.
+    if (document.documentElement.dataset["reducedMotion"] === "true") return;
     const target = event.target as HTMLElement | null;
     const host = target?.closest<HTMLElement>(
       "button, [role='button'], a[data-ripple], [data-ripple]",
     );
     if (!host || host.hasAttribute("disabled") || host.dataset["ripple"] === "off") return;
+
 
     const rect = host.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
