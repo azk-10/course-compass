@@ -18,7 +18,10 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-        <Link to="/" className="font-paper-display flex min-w-0 items-center gap-2 text-lg font-bold">
+        <Link
+          to="/"
+          className="font-paper-display flex min-w-0 items-center gap-2 text-lg font-bold"
+        >
           <img
             src={courseCompassLogo}
             alt="Course Compass logo"

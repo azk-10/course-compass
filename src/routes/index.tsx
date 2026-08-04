@@ -4,7 +4,6 @@ import { ArrowRight, Layers, Languages, ShieldCheck, Sparkles } from "lucide-rea
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteNav } from "@/components/site/SiteNav";
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -89,8 +88,7 @@ function Landing() {
         <section className="grid items-center gap-12 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:py-20">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold tracking-[0.18em] uppercase">
-              <span className="live-dot size-1.5 rounded-full" />
-              A Zoom chat companion
+              <span className="live-dot size-1.5 rounded-full" />A Zoom chat companion
             </p>
             <h1 className="mt-6 text-5xl leading-[0.95] font-extrabold text-balance sm:text-6xl xl:text-7xl">
               400 messages.
@@ -241,7 +239,6 @@ function Landing() {
             </Link>
           </div>
         </section>
-
       </main>
 
       <SiteFooter />

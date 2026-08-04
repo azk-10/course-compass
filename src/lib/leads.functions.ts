@@ -78,9 +78,7 @@ export const listLeads = createServerFn({ method: "GET" })
 export const updateLeadStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ id: z.string().uuid(), status: z.enum(LEAD_STATUSES) })
-      .parse(input),
+    z.object({ id: z.string().uuid(), status: z.enum(LEAD_STATUSES) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase

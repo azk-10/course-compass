@@ -154,8 +154,20 @@ function ContactPage() {
                   required: true,
                   autoComplete: "organization",
                 },
-                { name: "role", label: "Role", type: "text", required: true, autoComplete: "organization-title" },
-                { name: "email", label: "Email", type: "email", required: true, autoComplete: "email" },
+                {
+                  name: "role",
+                  label: "Role",
+                  type: "text",
+                  required: true,
+                  autoComplete: "organization-title",
+                },
+                {
+                  name: "email",
+                  label: "Email",
+                  type: "email",
+                  required: true,
+                  autoComplete: "email",
+                },
                 {
                   name: "phone",
                   label: "Phone / WhatsApp",

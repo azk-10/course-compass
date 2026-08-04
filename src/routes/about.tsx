@@ -39,10 +39,10 @@ function AboutPage() {
             lesson no teacher can keep up with.
           </p>
           <p>
-            Instead of asking teachers to read faster, we merge. Every message is read,
-            classified and grouped with the messages that mean the same thing, in English or Roman
-            Urdu, so a flood of four hundred lines becomes a short ranked list of what the room is
-            actually stuck on.
+            Instead of asking teachers to read faster, we merge. Every message is read, classified
+            and grouped with the messages that mean the same thing, in English or Roman Urdu, so a
+            flood of four hundred lines becomes a short ranked list of what the room is actually
+            stuck on.
           </p>
           <p>
             We are currently running pilots with schools, universities, coaching academies and

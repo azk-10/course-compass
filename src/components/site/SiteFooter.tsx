@@ -91,7 +91,10 @@ export function SiteFooter() {
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
             Sales enquiries go through our{" "}
-            <Link to="/contact" className="font-semibold text-foreground underline-offset-4 hover:underline">
+            <Link
+              to="/contact"
+              className="font-semibold text-foreground underline-offset-4 hover:underline"
+            >
               contact form
             </Link>
             .

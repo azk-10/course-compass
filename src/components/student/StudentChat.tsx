@@ -74,7 +74,6 @@ export function StudentChat({
   const burstGuard = useRef(createBurstGuard(BURST_LIMIT_PER_MINUTE, 60_000));
   const classify = useServerFn(classifyMessage);
 
-
   const { messages, isLoading, connection } = useLiveMessages(liveClass.id);
   const { threads, participants, votes, feedback, stats } = useThreads(
     liveClass.id,
@@ -240,7 +239,6 @@ export function StudentChat({
       });
       toast.error(error.message || "Could not send your message");
     },
-
   });
 
   const clarifyMutation = useMutation({
@@ -361,7 +359,6 @@ export function StudentChat({
     setDraft("");
     postMutation.mutate(body);
   }
-
 
   const statusMeta = {
     connecting: { label: "Connecting…", className: "text-muted-foreground" },

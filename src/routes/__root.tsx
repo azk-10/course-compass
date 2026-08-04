@@ -102,7 +102,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Hundreds of student messages merge into a handful of ranked discussions. Keep Zoom for video, run the conversation here.",
       },
-
     ],
     links: [
       {
@@ -117,7 +116,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
-
     ],
   }),
 

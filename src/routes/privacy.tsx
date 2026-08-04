@@ -74,7 +74,10 @@ function PrivacyPage() {
             <h2 className="text-lg font-bold">Contact</h2>
             <p className="mt-2 text-base/8 text-muted-foreground">
               Privacy questions and data requests go through our{" "}
-              <Link to="/contact" className="font-semibold text-foreground underline-offset-4 hover:underline">
+              <Link
+                to="/contact"
+                className="font-semibold text-foreground underline-offset-4 hover:underline"
+              >
                 contact form
               </Link>
               .

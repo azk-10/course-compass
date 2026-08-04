@@ -12,7 +12,6 @@ export function installRipple() {
     );
     if (!host || host.hasAttribute("disabled") || host.dataset["ripple"] === "off") return;
 
-
     const rect = host.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
 
