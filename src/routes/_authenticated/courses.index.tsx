@@ -215,7 +215,10 @@ function CoursesHome() {
             </ul>
           </section>
         )}
+
+        {orgQuery.data && <OrgApprovals organization={orgQuery.data} />}
       </main>
+
 
       <NewCourseDialog
         open={open}
