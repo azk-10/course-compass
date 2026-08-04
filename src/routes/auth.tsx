@@ -199,15 +199,24 @@ function AuthPage() {
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            {mode === "signin" ? "or use email" : "use email"}
+            {mode === "signin" ? "or use email" : mode === "reset" ? "account email" : "use email"}
             <span className="h-px flex-1 bg-border" />
           </div>
 
           {sent ? (
             <p className="rounded-lg border border-border bg-secondary p-4 text-sm">
-              Confirmation email sent to <strong>{email}</strong>. Click the link to finish setting
-              up your account.
-              {org && ` The owner of ${org.name} then approves you.`}
+              {mode === "reset" ? (
+                <>
+                  Password reset link sent to <strong>{email}</strong>. Open it on this device to
+                  choose a new password.
+                </>
+              ) : (
+                <>
+                  Confirmation email sent to <strong>{email}</strong>. Click the link to finish
+                  setting up your account.
+                  {org && ` The owner of ${org.name} then approves you.`}
+                </>
+              )}
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
