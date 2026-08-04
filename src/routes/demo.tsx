@@ -110,8 +110,10 @@ function DemoPage() {
   );
 
   const unresolved = stats.filter(
-    (item) => item.category !== "spam" && item.health !== "settled",
+    (item) =>
+      item.category !== "spam" && item.category !== "general" && item.health !== "settled",
   ).length;
+
 
   // Periodic, throttled screen-reader summary of the live class.
   useEffect(() => {
