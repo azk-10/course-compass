@@ -1,13 +1,11 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Building2, Check, Compass, Loader2, Search } from "lucide-react";
+import { Check, Compass, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
-import { OrganizationPicker } from "@/components/org/OrganizationPicker";
-import type { Organization } from "@/lib/org";
 
 type Role = "teacher" | "student" | "owner";
 
@@ -46,7 +44,6 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
-  const [org, setOrg] = useState<Organization | null>(null);
   const [independent, setIndependent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -91,8 +88,8 @@ function AuthPage() {
       }
       return;
     }
-    if (needsOrgPicker && !org && !independent) {
-      toast.error("Pick your organization, or continue as an independent teacher");
+    if (needsOrgPicker && !orgName.trim() && !independent) {
+      toast.error("Enter your organization name, or tick “I teach independently”");
       return;
     }
 
@@ -110,8 +107,7 @@ function AuthPage() {
             emailRedirectTo: window.location.origin,
             data: {
               role,
-              ...(isOwner ? { organization_name: orgName.trim() } : {}),
-              ...(org ? { organization_id: org.id } : {}),
+              ...(orgName.trim() && !independent ? { organization_name: orgName.trim() } : {}),
             },
           },
         });
@@ -214,7 +210,6 @@ function AuthPage() {
                 <>
                   Confirmation email sent to <strong>{email}</strong>. Click the link to finish
                   setting up your account.
-                  {org && ` The owner of ${org.name} then approves you.`}
                 </>
               )}
             </p>
