@@ -196,6 +196,7 @@ function CoursesHome() {
         )}
 
         {orgQuery.data && <OrgApprovals organization={orgQuery.data} />}
+        {orgQuery.data && <ApprovalsAuditLog organization={orgQuery.data} />}
       </main>
 
 
