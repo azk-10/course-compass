@@ -1,4 +1,5 @@
-import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
+import * as startCore from "@tanstack/react-start";
+import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
@@ -20,12 +21,21 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
-// from cross-site requests.
-const csrfMiddleware = createCsrfMiddleware({
-  filter: (ctx) => ctx.handlerType === "serverFn",
-});
+// from cross-site requests. Older @tanstack/react-start builds (which some
+// deploy hosts resolve to) do not export it, so resolve it defensively.
+const createCsrf = (
+  startCore as unknown as {
+    createCsrfMiddleware?: (opts: {
+      filter?: (ctx: { handlerType: string }) => boolean;
+    }) => never;
+  }
+).createCsrfMiddleware;
+
+const csrfMiddleware = createCsrf
+  ? createCsrf({ filter: (ctx) => ctx.handlerType === "serverFn" })
+  : undefined;
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: csrfMiddleware ? [errorMiddleware, csrfMiddleware] : [errorMiddleware],
 }));
