@@ -141,24 +141,28 @@ function AuthPage() {
   }
 
   const heading =
-    mode === "signin"
-      ? "Welcome back"
-      : isStudent
-        ? "Create your student account"
-        : isOwner
-          ? "Register your organization"
-          : "Create your teacher account";
+    mode === "reset"
+      ? "Reset your password"
+      : mode === "signin"
+        ? "Welcome back"
+        : isStudent
+          ? "Create your student account"
+          : isOwner
+            ? "Register your organization"
+            : "Create your teacher account";
 
   const sub =
-    mode === "signin"
-      ? isStudent
-        ? "Sign in to reach your classes."
-        : "Sign in to open your courses."
-      : isStudent
-        ? "Sign in once — then enrol with your teacher's course code."
-        : isOwner
-          ? "You will own the organization and approve every teacher who joins it."
-          : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
+    mode === "reset"
+      ? "Enter your account email and we'll send you a secure link to set a new password."
+      : mode === "signin"
+        ? isStudent
+          ? "Sign in to reach your classes."
+          : "Sign in to open your courses."
+        : isStudent
+          ? "Sign in once — then enrol with your teacher's course code."
+          : isOwner
+            ? "You will own the organization and approve every teacher who joins it."
+            : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
