@@ -271,7 +271,10 @@ function DemoPage() {
         </main>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[13rem_minmax(0,1fr)_20rem]">
-          <div className="border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground lg:border-r lg:border-b-0">
+          <div className="sticky top-0 z-30 self-start border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground shadow-sm lg:h-screen lg:overflow-y-auto lg:border-r lg:border-b-0 lg:shadow-none">
+            <p className="hidden px-3 pb-2 text-[0.62rem] tracking-[0.16em] uppercase opacity-60 lg:block">
+              Class chat
+            </p>
             <ChatTabList
               messages={view.messages}
               tab={tab}
@@ -280,6 +283,7 @@ function DemoPage() {
               sessionKey="demo"
             />
           </div>
+
 
           <main
             id="demo-main"
