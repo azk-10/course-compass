@@ -24,6 +24,12 @@ export type LeadInput = z.infer<typeof leadSchema>;
 export const submitLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => leadSchema.parse(input))
   .handler(async ({ data }) => {
+    // Env is read inside the handler; a missing service role key becomes a friendly
+    // message instead of an unhandled 500 during SSR.
+    if (!process.env["SUPABASE_URL"] || !process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+      console.error("[leads] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      throw new Error("Sales requests are temporarily unavailable. Please email us instead.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("sales_leads").insert({
       name: data.name,
