@@ -124,10 +124,16 @@ export function ChatTabList({
             ) : (
               <>
                 <span className="truncate">{label}</span>
-                <span className="ml-auto rounded-full bg-sidebar-accent px-1.5 text-[0.62rem]">
-                  {count}
-                </span>
+                {count > 0 && (
+                  <span
+                    title={key === "topics" ? "Unresolved topics" : "Unread messages"}
+                    className="ml-auto rounded-full bg-sidebar-primary px-1.5 text-[0.62rem] font-semibold text-sidebar-primary-foreground"
+                  >
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
               </>
+
             )}
           </button>
         );
