@@ -290,7 +290,7 @@ function DemoPage() {
             ref={mainRef}
             tabIndex={-1}
             aria-label={compare ? "Zoom versus AI comparison" : "Live classroom feed"}
-            className="flex min-h-0 flex-col outline-none"
+            className="flex min-h-0 flex-col outline-none lg:h-screen"
           >
             {compare ? (
               <ComparisonView view={view} />
