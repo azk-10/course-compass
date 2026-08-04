@@ -55,6 +55,51 @@ export type Database = {
           },
         ]
       }
+      ai_usage_events: {
+        Row: {
+          created_at: string
+          credits: number
+          duration_ms: number
+          fallback: boolean
+          id: string
+          input_tokens: number
+          model: string
+          operation: string
+          output_tokens: number
+          session_id: string | null
+          status: string
+          teacher_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          duration_ms?: number
+          fallback?: boolean
+          id?: string
+          input_tokens?: number
+          model?: string
+          operation?: string
+          output_tokens?: number
+          session_id?: string | null
+          status?: string
+          teacher_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          duration_ms?: number
+          fallback?: boolean
+          id?: string
+          input_tokens?: number
+          model?: string
+          operation?: string
+          output_tokens?: number
+          session_id?: string | null
+          status?: string
+          teacher_id?: string | null
+        }
+        Relationships: []
+      }
       capacity_events: {
         Row: {
           actor_id: string | null
