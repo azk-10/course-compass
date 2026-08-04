@@ -51,18 +51,24 @@ function AuthPage() {
   const needsOrgPicker = role === "teacher" && mode === "signup";
 
   useEffect(() => {
+    let active = true;
     const go = async () => {
       const fallback = isStudent ? "/student" : "/courses";
       const to = await resolveLandingRoute(fallback);
-      navigate({ to, replace: true });
+      if (active) await navigate({ to, replace: true });
     };
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void go();
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!error && data.session) void go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) void go();
+      // Supabase holds an internal auth lock while this callback runs. Deferring
+      // avoids deadlocking when resolveLandingRoute calls getUser/query methods.
+      if (session) window.setTimeout(() => void go(), 0);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, [navigate, isStudent]);
 
 
@@ -117,11 +123,21 @@ function AuthPage() {
           toast.success("Check your email to confirm your account.");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (!data.session) throw new Error("Sign in completed without creating a session");
+        const fallback = isStudent ? "/student" : "/courses";
+        const to = await resolveLandingRoute(fallback);
+        await navigate({ to, replace: true });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        toast.error(
+          "Authentication could not reach the backend. Check this deployment's VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY build variables, then redeploy.",
+        );
+      } else {
+        toast.error(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setBusy(false);
     }

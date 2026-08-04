@@ -44,9 +44,12 @@ function ResetPasswordPage() {
       setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!active) return;
-      setHasSession(Boolean(session));
-      setReady(true);
+      // Defer state work until the auth client's internal callback lock is released.
+      window.setTimeout(() => {
+        if (!active) return;
+        setHasSession(Boolean(session));
+        setReady(true);
+      }, 0);
     });
     return () => {
       active = false;

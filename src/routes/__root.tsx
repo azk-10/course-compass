@@ -155,8 +155,12 @@ function RootComponent() {
     const unsubscribe = safeSupabase(() => {
       const { data: sub } = supabase.auth.onAuthStateChange((event) => {
         if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-        router.invalidate();
-        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+        // Do not call auth-dependent loaders while the auth client is still
+        // processing its state-change callback.
+        window.setTimeout(() => {
+          void router.invalidate();
+          if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+        }, 0);
       });
       return () => sub.subscription.unsubscribe();
     }, undefined);
