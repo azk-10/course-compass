@@ -1,5 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Compass, Layers, Languages, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Layers, Languages, ShieldCheck, Sparkles } from "lucide-react";
+
+import courseCompassLogo from "@/assets/course-compass-logo.png";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
