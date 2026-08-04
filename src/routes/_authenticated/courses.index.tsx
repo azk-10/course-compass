@@ -16,12 +16,15 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
+import { OrgApprovals } from "@/components/dashboard/OrgApprovals";
+import { fetchMyProfile, fetchOwnedOrganization } from "@/lib/org";
 import {
   createCourse,
   fetchCourses,
   setCourseArchived,
   type Course,
 } from "@/lib/dashboard-data";
+
 
 export const Route = createFileRoute("/_authenticated/courses/")({
   head: () => ({
