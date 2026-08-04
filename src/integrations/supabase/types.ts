@@ -648,6 +648,7 @@ export type Database = {
           email: string | null
           id: string
           organization_id: string | null
+          organization_name: string | null
           role: string
         }
         Insert: {
@@ -658,6 +659,7 @@ export type Database = {
           email?: string | null
           id: string
           organization_id?: string | null
+          organization_name?: string | null
           role?: string
         }
         Update: {
@@ -668,6 +670,7 @@ export type Database = {
           email?: string | null
           id?: string
           organization_id?: string | null
+          organization_name?: string | null
           role?: string
         }
         Relationships: [

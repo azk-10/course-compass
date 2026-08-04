@@ -1,13 +1,11 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Building2, Check, Compass, Loader2, Search } from "lucide-react";
+import { Check, Compass, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
-import { OrganizationPicker } from "@/components/org/OrganizationPicker";
-import type { Organization } from "@/lib/org";
 
 type Role = "teacher" | "student" | "owner";
 
@@ -46,7 +44,6 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
-  const [org, setOrg] = useState<Organization | null>(null);
   const [independent, setIndependent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -91,8 +88,8 @@ function AuthPage() {
       }
       return;
     }
-    if (needsOrgPicker && !org && !independent) {
-      toast.error("Pick your organization, or continue as an independent teacher");
+    if (needsOrgPicker && !orgName.trim() && !independent) {
+      toast.error("Enter your organization name, or tick “I teach independently”");
       return;
     }
 
@@ -110,8 +107,7 @@ function AuthPage() {
             emailRedirectTo: window.location.origin,
             data: {
               role,
-              ...(isOwner ? { organization_name: orgName.trim() } : {}),
-              ...(org ? { organization_id: org.id } : {}),
+              ...(orgName.trim() && !independent ? { organization_name: orgName.trim() } : {}),
             },
           },
         });
@@ -162,7 +158,7 @@ function AuthPage() {
           ? "Sign in once — then enrol with your teacher's course code."
           : isOwner
             ? "You will own the organization and approve every teacher who joins it."
-            : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
+            : "Tell us the name of your school, college or academy — your account is approved before it unlocks.";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
@@ -214,7 +210,6 @@ function AuthPage() {
                 <>
                   Confirmation email sent to <strong>{email}</strong>. Click the link to finish
                   setting up your account.
-                  {org && ` The owner of ${org.name} then approves you.`}
                 </>
               )}
             </p>
@@ -238,35 +233,40 @@ function AuthPage() {
 
               {needsOrgPicker && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Your organization
+                  <label
+                    htmlFor="teacherOrgName"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Name of your organization
                   </label>
-                  <div className="mt-1">
-                    <OrganizationPicker
-                      value={org}
-                      onSelect={(next) => {
-                        setOrg(next);
-                        if (next) setIndependent(false);
+                  <input
+                    id="teacherOrgName"
+                    value={orgName}
+                    disabled={independent}
+                    onChange={(e) => setOrgName(e.target.value)}
+                    placeholder="Beaconhouse College, Lahore"
+                    className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                  />
+                  <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={independent}
+                      onChange={(e) => {
+                        setIndependent(e.target.checked);
+                        if (e.target.checked) setOrgName("");
                       }}
-                      independent={independent}
-                      onIndependent={(next) => {
-                        setIndependent(next);
-                        if (next) setOrg(null);
-                      }}
+                      className="size-3.5 accent-primary"
                     />
-                  </div>
-                  {org && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      The owner of {org.name} reviews your request before your courses unlock.
-                    </p>
-                  )}
-                  {independent && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Independent teachers get full access straight away — no approval needed.
-                    </p>
-                  )}
+                    I teach independently — no organization
+                  </label>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {independent
+                      ? "Independent teachers get full access straight away — no approval needed."
+                      : "Type your school, college or academy exactly as you call it. Your account is approved before your courses unlock."}
+                  </p>
                 </div>
               )}
+
 
               <div>
                 <label htmlFor="email" className="text-xs font-medium text-muted-foreground">

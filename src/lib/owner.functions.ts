@@ -109,7 +109,7 @@ export const listAccounts = createServerFn({ method: "GET" })
 
     const { data: profiles } = await supabaseAdmin
       .from("profiles")
-      .select("id, display_name, email, role, organization_id, account_status, created_at")
+      .select("id, display_name, email, role, organization_id, organization_name, account_status, created_at")
       .in("role", roleFilter)
       .order("created_at", { ascending: false })
       .limit(1000);
@@ -139,7 +139,7 @@ export const listAccounts = createServerFn({ method: "GET" })
         role: p.role,
         accountStatus: p.account_status ?? "active",
         organizationId: p.organization_id,
-        organizationName: p.organization_id ? (orgById.get(p.organization_id) ?? null) : null,
+        organizationName: (p.organization_id ? orgById.get(p.organization_id) : null) ?? p.organization_name ?? null,
         planId: sub?.plan_id ?? null,
         status: sub?.status ?? null,
         classesAllowed: sub?.classes_allowed ?? 0,
