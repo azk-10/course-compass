@@ -414,7 +414,9 @@ function CourseDashboard() {
             setChatTab(next);
             if (window.innerWidth < 640) setRailOpen(false);
           }}
-          threadCount={threadStats.length}
+          threadCount={threadStats.filter((item) => item.health !== "settled").length}
+          sessionKey={session?.id ?? activeCourse?.id ?? "none"}
+
           collapsed={!railOpen}
         />
       </aside>
