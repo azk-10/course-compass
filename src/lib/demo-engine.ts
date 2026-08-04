@@ -172,12 +172,19 @@ export function ingest(state: DemoState, body: string, label: string): void {
   const now = new Date().toISOString();
 
   // Auto-merge against the live threads of the same category.
+  const bucketTitle = titleFor(body, category);
+  const open = state.threads.filter(
+    (item) => item.category === category && item.status !== "archived",
+  );
+  // Technical, off-topic and spam collapse into one bucket per kind; questions
+  // and answers merge on semantic similarity, exactly like the live product.
   let thread =
-    state.threads
-      .filter((item) => item.category === category && item.status !== "archived")
-      .map((item) => ({ item, score: textSimilarity(body, item.title) }))
-      .filter((entry) => entry.score >= 0.45)
-      .sort((a, b) => b.score - a.score)[0]?.item ?? null;
+    (category === "question" || category === "answer"
+      ? (open
+          .map((item) => ({ item, score: textSimilarity(body, item.title) }))
+          .filter((entry) => entry.score >= 0.45)
+          .sort((a, b) => b.score - a.score)[0]?.item ?? null)
+      : (open.find((item) => item.title === bucketTitle) ?? null));
 
   const mergedIntoExisting = Boolean(thread);
   if (!thread) {
@@ -186,7 +193,7 @@ export function ingest(state: DemoState, body: string, label: string): void {
       session_id: DEMO_SESSION_ID,
       course_id: "demo-course",
       teacher_id: "demo-teacher",
-      title: titleFor(body, category),
+      title: bucketTitle,
       status: "open",
       category,
       created_at: now,
