@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -22,6 +22,13 @@ import { CATEGORY_META, toCategory, type Category } from "@/lib/classify";
 import { sendMessage, setMessageCategory, studentsOnline, type ChatMessage } from "@/lib/live-chat";
 import { classifyMessage } from "@/lib/merge.functions";
 import { answerPoll, openPoll, shouldOpenAudioPoll, type Poll } from "@/lib/polls";
+import {
+  BURST_LIMIT_PER_MINUTE,
+  createBurstGuard,
+  createTokenBucket,
+  rateLimitMessage,
+} from "@/lib/rate-limit";
+
 import {
   createThread,
   joinThread,
@@ -63,7 +70,10 @@ export function StudentChat({
   const [now, setNow] = useState(() => Date.now());
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [myReaction, setMyReaction] = useState<ReactionKind | null>(null);
+  const bucket = useRef(createTokenBucket(3, Math.max(settings.cooldown_ms, 500)));
+  const burstGuard = useRef(createBurstGuard(BURST_LIMIT_PER_MINUTE, 60_000));
   const classify = useServerFn(classifyMessage);
+
 
   const { messages, isLoading, connection } = useLiveMessages(liveClass.id);
   const { threads, participants, votes, feedback, stats } = useThreads(
@@ -216,6 +226,13 @@ export function StudentChat({
       refresh();
     },
     onError: (error: Error) => {
+      // The database enforces the real limit; surface it in plain language.
+      const limited = rateLimitMessage(error);
+      if (limited) {
+        setCooldownUntil(Date.now() + Math.max(settings.cooldown_ms, 2_000));
+        toast.info(limited);
+        return;
+      }
       logEvent({
         kind: "ai_failure",
         sessionId: liveClass.id,
@@ -223,6 +240,7 @@ export function StudentChat({
       });
       toast.error(error.message || "Could not send your message");
     },
+
   });
 
   const clarifyMutation = useMutation({
@@ -326,10 +344,24 @@ export function StudentChat({
       toast.info("Slow down a moment — one message at a time.");
       return;
     }
+    // Mirrors the database limits so students are told before the round-trip.
+    const burstWait = burstGuard.current.take();
+    if (burstWait > 0) {
+      setCooldownUntil(Date.now() + burstWait);
+      toast.info("You've sent a lot of messages — take a short break before sending more.");
+      return;
+    }
+    const bucketWait = bucket.current.take();
+    if (bucketWait > 0) {
+      setCooldownUntil(Date.now() + bucketWait);
+      toast.info("Slow down a moment — one message at a time.");
+      return;
+    }
     setCooldownUntil(Date.now() + settings.cooldown_ms);
     setDraft("");
     postMutation.mutate(body);
   }
+
 
   const statusMeta = {
     connecting: { label: "Connecting…", className: "text-muted-foreground" },
