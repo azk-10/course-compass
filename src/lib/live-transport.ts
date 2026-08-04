@@ -46,14 +46,14 @@ export const MAX_RETAINED = 1500;
 const FLUSH_BASE_MS = 180;
 const FLUSH_MAX_MS = 1400;
 
-function flushIntervalFor(queueDepth: number): number {
+export function flushIntervalFor(queueDepth: number): number {
   if (queueDepth > 800) return FLUSH_MAX_MS;
   if (queueDepth > 250) return 700;
   if (queueDepth > 60) return 350;
   return FLUSH_BASE_MS;
 }
 
-function pollIntervalFor(audience: number): number {
+export function pollIntervalFor(audience: number): number {
   if (audience > 20_000) return 5_000;
   if (audience > 5_000) return 3_500;
   if (audience > 1_000) return 2_500;
