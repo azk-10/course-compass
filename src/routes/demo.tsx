@@ -303,8 +303,9 @@ function DemoPage() {
 
           <aside
             aria-label="Demo controls and live statistics"
-            className="min-h-0 space-y-3 overflow-y-auto border-t border-border p-4 lg:border-t-0 lg:border-l"
+            className="min-h-0 space-y-3 border-t border-border p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:overflow-y-auto lg:border-t-0 lg:border-l"
           >
+
             <section className="panel p-4" aria-labelledby="demo-live-class">
               <h2 id="demo-live-class" className="font-display text-sm font-semibold">
                 Live class
