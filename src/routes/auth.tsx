@@ -42,7 +42,7 @@ function AuthPage() {
   const { role } = Route.useSearch();
   const isStudent = role === "student";
   const isOwner = role === "owner";
-  const [mode, setMode] = useState<"signin" | "signup">(isOwner ? "signup" : "signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">(isOwner ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
