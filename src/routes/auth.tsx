@@ -71,6 +71,26 @@ function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "reset") {
+      if (!email.trim()) {
+        toast.error("Enter the email for your account");
+        return;
+      }
+      setBusy(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setSent(true);
+        toast.success("Password reset link sent.");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Could not send the reset link");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     if (needsOrgPicker && !org && !independent) {
       toast.error("Pick your organization, or continue as an independent teacher");
       return;
