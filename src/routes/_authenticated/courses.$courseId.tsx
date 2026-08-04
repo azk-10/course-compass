@@ -605,6 +605,7 @@ function CourseDashboard() {
           onLevelChange={setSettingsLevel}
           onChange={(patch) => settingsMutation.mutate(patch)}
           devMode={devMode}
+          studentsOnline={online.length}
           onDevMode={(on) => {
             setDev(on);
             setDevMode(on);
