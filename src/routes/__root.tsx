@@ -150,12 +150,16 @@ function RootComponent() {
   useEffect(() => installRipple(), []);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => sub.subscription.unsubscribe();
+    // Missing Supabase env vars (self-hosted deploys) must not take the page down.
+    const unsubscribe = safeSupabase(() => {
+      const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+        router.invalidate();
+        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      });
+      return () => sub.subscription.unsubscribe();
+    }, undefined);
+    return unsubscribe;
   }, [router, queryClient]);
 
   return (
