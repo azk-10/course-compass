@@ -178,7 +178,12 @@ function DemoPage() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      // Only text-entry fields swallow shortcuts; checkboxes and sliders don't.
+      const field = target?.closest<HTMLElement>(
+        "input, textarea, select, [contenteditable='true']",
+      );
+      if (field && !(field instanceof HTMLInputElement && /checkbox|radio|range/.test(field.type)))
+        return;
       const key = event.key.toLowerCase();
       if (!live) {
         if (key === "s") {
