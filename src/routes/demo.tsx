@@ -15,11 +15,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-import {
-  ChatTabList,
-  RawChatList,
-  type ChatTab,
-} from "@/components/dashboard/RawChatPanel";
+import { ChatTabList, RawChatList, type ChatTab } from "@/components/dashboard/RawChatPanel";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import {
   MAX_RETAINED,
@@ -290,7 +286,6 @@ function DemoPage() {
             />
           </div>
 
-
           <main
             id="demo-main"
             ref={mainRef}
@@ -471,7 +466,6 @@ function MotionToggle({
     </label>
   );
 }
-
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (

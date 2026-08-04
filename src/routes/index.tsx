@@ -1,8 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowRight, Layers, Languages, ShieldCheck, Sparkles } from "lucide-react";
 
-import courseCompassLogo from "@/assets/course-compass-logo.png";
-
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteNav } from "@/components/site/SiteNav";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -81,55 +81,14 @@ const toneClass = {
 
 function Landing() {
   return (
-    <div className="paper-ink min-h-screen">
-      <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6">
-        <span className="font-paper-display flex min-w-0 items-center gap-2 text-lg font-bold">
-          <img
-            src={courseCompassLogo}
-            alt="Course Compass logo"
-            width={28}
-            height={28}
-            className="size-7 shrink-0"
-          />
-          <span className="truncate">Course Compass</span>
-        </span>
+    <div className="paper-ink flex min-h-screen flex-col">
+      <SiteNav />
 
-        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <Link
-            to="/demo"
-            className="rounded-md px-3 py-2 text-sm font-semibold transition-colors hover:bg-secondary"
-          >
-            Live demo
-          </Link>
-          <Link
-            to="/student"
-            className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:inline-flex"
-          >
-            Join as student
-          </Link>
-          <Link
-            to="/auth"
-            search={{ role: "owner" as const }}
-            className="hidden rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex"
-          >
-            Organizations
-          </Link>
-          <Link
-            to="/auth"
-            search={{ role: "teacher" as const }}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
-          >
-            Teacher sign in
-          </Link>
-        </nav>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-6 pb-24">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 pb-24">
         <section className="grid items-center gap-12 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16 lg:py-20">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[0.7rem] font-semibold tracking-[0.18em] uppercase">
-              <span className="live-dot size-1.5 rounded-full" />
-              A Zoom chat companion
+              <span className="live-dot size-1.5 rounded-full" />A Zoom chat companion
             </p>
             <h1 className="mt-6 text-5xl leading-[0.95] font-extrabold text-balance sm:text-6xl xl:text-7xl">
               400 messages.
@@ -224,22 +183,65 @@ function Landing() {
           ))}
         </section>
 
+        <section className="paper-rule mt-20 pt-10">
+          <h2 className="text-2xl font-bold">Why teachers switch the chat over</h2>
+          <div className="mt-8 grid gap-8 sm:grid-cols-3">
+            {[
+              {
+                title: "You answer the room, not the loudest student",
+                body: "Merged threads are ranked by how many students are stuck, so the biggest blocker is always at the top.",
+              },
+              {
+                title: "Nothing is lost",
+                body: "The raw transcript, including spam and off-topic chatter, stays one click away in the sidebar.",
+              },
+              {
+                title: "The class tells you when it's fixed",
+                body: "Students mark threads resolved or still confusing, and discussions archive themselves once the room agrees.",
+              },
+            ].map((benefit) => (
+              <div key={benefit.title}>
+                <h3 className="text-base font-bold">{benefit.title}</h3>
+                <p className="mt-2 text-sm/6 text-muted-foreground">{benefit.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="paper-rule mt-20 flex flex-wrap items-center justify-between gap-6 pt-10">
           <div>
             <h2 className="text-2xl font-bold">See it with 1000 simulated students</h2>
             <p className="mt-2 max-w-xl text-sm/6 text-muted-foreground">
               No sign-up. Launch the simulation, throw a question storm at it, and watch the feed
-              collapse into a handful of threads.
+              collapse into a handful of threads. When you're ready, we'll set up a pilot with your
+              own teachers.
             </p>
           </div>
-          <Link
-            to="/demo"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
-          >
-            Launch demo <ArrowRight className="size-4" />
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/demo"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
+            >
+              Launch demo <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-2 rounded-md border border-foreground/20 px-6 py-3.5 text-sm font-bold transition-colors hover:bg-secondary active:scale-[0.97]"
+            >
+              See pricing
+            </Link>
+            <Link
+              to="/contact"
+              search={{ plan: "academy" as const }}
+              className="inline-flex items-center gap-2 rounded-md border border-foreground/20 px-6 py-3.5 text-sm font-bold transition-colors hover:bg-secondary active:scale-[0.97]"
+            >
+              Contact sales
+            </Link>
+          </div>
         </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

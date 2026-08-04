@@ -131,7 +131,6 @@ export function ChatTabList({
                 : "opacity-75 hover:bg-sidebar-accent/50 hover:opacity-100"
             }`}
           >
-
             {active && (
               <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-sidebar-primary" />
             )}
