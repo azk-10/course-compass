@@ -4,6 +4,7 @@ import { ArrowRight, Layers, Languages, ShieldCheck, Sparkles } from "lucide-rea
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteNav } from "@/components/site/SiteNav";
 import { pageMeta } from "@/lib/seo";
+import { useOwnerAutoRedirect } from "@/lib/use-owner-redirect";
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -72,6 +73,7 @@ const toneClass = {
 };
 
 function Landing() {
+  useOwnerAutoRedirect();
   return (
     <div className="paper-ink flex min-h-screen flex-col">
       <SiteNav />
