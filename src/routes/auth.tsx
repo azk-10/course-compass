@@ -4,6 +4,7 @@ import { Building2, Check, Compass, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
 import { OrganizationPicker } from "@/components/org/OrganizationPicker";
 import type { Organization } from "@/lib/org";
