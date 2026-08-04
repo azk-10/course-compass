@@ -42,6 +42,7 @@ const SECTIONS = [
   { id: "teachers", label: "Teachers", icon: GraduationCap },
   { id: "academies", label: "Academies", icon: Building2 },
   { id: "students", label: "Students", icon: Users },
+  { id: "requests", label: "Requests", icon: Inbox },
   { id: "billing", label: "Billing", icon: CreditCard },
   { id: "usage", label: "AI usage", icon: Activity },
   { id: "settings", label: "Settings", icon: Settings2 },
@@ -121,6 +122,7 @@ function OwnerConsole() {
           {section === "teachers" && <AccountsTable kind="teacher" />}
           {section === "academies" && <AccountsTable kind="academy" />}
           {section === "students" && <AccountsTable kind="student" />}
+          {section === "requests" && <RequestsPanel />}
           {section === "billing" && <BillingTable />}
           {section === "usage" && <UsageSection />}
           {section === "settings" && <SettingsPanel />}
