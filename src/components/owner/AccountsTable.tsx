@@ -38,7 +38,8 @@ export function AccountsTable({ kind }: { kind: Kind }) {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["owner-accounts", kind] });
 
   const mutate = useMutation({
-    mutationFn: (input: Parameters<typeof patchSub>[0]["data"]) => patchSub({ data: input }),
+    mutationFn: (input: { userId: string } & Record<string, unknown>) =>
+      patchSub({ data: input as never }),
     onSuccess: () => {
       toast.success("Subscription updated — it will show on the next invoice");
       invalidate();
@@ -114,7 +115,10 @@ export function AccountsTable({ kind }: { kind: Kind }) {
                   toast.success("Signed out of all devices");
                 }}
                 onReset={async () => {
-                  if (!a.email) return toast.error("This account has no email on file");
+                  if (!a.email) {
+                    toast.error("This account has no email on file");
+                    return;
+                  }
                   await resetPassword({ data: { email: a.email } });
                   toast.success("Password reset link generated");
                 }}
