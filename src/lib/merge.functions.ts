@@ -51,14 +51,18 @@ export const classifyMessage = createServerFn({ method: "POST" })
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) return fallback();
 
+    const { recordAiUsage } = await import("@/lib/ai-usage.server");
+    const MODEL = "google/gemini-3.1-flash-lite";
+    const startedAt = Date.now();
+
     const gateway = createLovableAiGatewayProvider(key);
     const list = data.candidates.length
       ? data.candidates.map((c, i) => `${i + 1}. [${c.id}] (${c.category}) ${c.title}`).join("\n")
       : "(none)";
 
     try {
-      const { output } = await generateText({
-        model: gateway("google/gemini-3.1-flash-lite"),
+      const { output, usage } = await generateText({
+        model: gateway(MODEL),
         abortSignal: AbortSignal.timeout(BUDGET_MS),
         maxOutputTokens: 120,
         temperature: 0,
@@ -76,6 +80,15 @@ export const classifyMessage = createServerFn({ method: "POST" })
         prompt: `New message: "${data.draft}"\n\nExisting threads:\n${list}\n\nReturn JSON with category, confidence, threadId and title.`,
       });
 
+      void recordAiUsage({
+        model: MODEL,
+        status: "success",
+        inputTokens: usage.inputTokens ?? 0,
+        outputTokens: usage.outputTokens ?? 0,
+        durationMs: Date.now() - startedAt,
+        fallback: false,
+      });
+
       const category = isSmallTalk(data.draft) ? "general" : toCategory(output.category);
       const match = data.candidates.find((c) => c.id === output.threadId);
       return {
@@ -84,7 +97,14 @@ export const classifyMessage = createServerFn({ method: "POST" })
         threadId: match && toCategory(match.category) === category ? match.id : null,
         title: output.title?.slice(0, 80) ?? null,
       };
-    } catch {
+    } catch (error) {
+      const timedOut = error instanceof Error && /abort|timeout/i.test(error.name + error.message);
+      void recordAiUsage({
+        model: MODEL,
+        status: timedOut ? "timeout" : "error",
+        durationMs: Date.now() - startedAt,
+        fallback: true,
+      });
       return fallback();
     }
   });
