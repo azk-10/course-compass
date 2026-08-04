@@ -20,6 +20,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedOwnerRouteImport } from './routes/_authenticated/owner'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
@@ -78,6 +79,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOwnerRoute = AuthenticatedOwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/admin/leads',
   path: '/admin/leads',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
+  '/owner': typeof AuthenticatedOwnerRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
+  '/owner': typeof AuthenticatedOwnerRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/owner': typeof AuthenticatedOwnerRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/student'
     | '/terms'
+    | '/owner'
     | '/admin/leads'
     | '/courses/$courseId'
     | '/courses/'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/student'
     | '/terms'
+    | '/owner'
     | '/admin/leads'
     | '/courses/$courseId'
     | '/courses'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/student'
     | '/terms'
+    | '/_authenticated/owner'
     | '/_authenticated/admin/leads'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/courses/'
@@ -285,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/owner': {
+      id: '/_authenticated/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof AuthenticatedOwnerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/admin/leads'
@@ -310,12 +329,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedOwnerRoute: typeof AuthenticatedOwnerRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedOwnerRoute: AuthenticatedOwnerRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
