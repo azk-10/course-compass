@@ -307,3 +307,40 @@
     opacity: 0;
   }
 }
+
+/*
+ * Landing page scope — "Paper & Ink"
+ * Off-white paper, rich black ink, Sora display + Manrope body.
+ * Scoped so the teacher dashboard keeps the Lecture Hall theme.
+ */
+.paper-ink {
+  --background: oklch(0.958 0.007 85);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(0.995 0.002 85);
+  --card-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.15 0 0);
+  --primary-foreground: oklch(0.97 0.005 85);
+  --secondary: oklch(0.913 0.011 85);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.925 0.009 85);
+  --muted-foreground: oklch(0.45 0.005 85);
+  --accent: oklch(0.15 0 0);
+  --accent-foreground: oklch(0.97 0.005 85);
+  --border: oklch(0.87 0.009 85);
+  --input: oklch(0.87 0.009 85);
+  --ring: oklch(0.32 0 0);
+  --radius: 0.5rem;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+.paper-ink :is(h1, h2, h3, h4),
+.paper-ink .font-paper-display {
+  font-family: "Sora", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+@utility paper-rule {
+  border-top: 1px solid var(--color-border);
+}
