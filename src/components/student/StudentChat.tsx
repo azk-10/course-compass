@@ -23,6 +23,13 @@ import { sendMessage, setMessageCategory, studentsOnline, type ChatMessage } fro
 import { classifyMessage } from "@/lib/merge.functions";
 import { answerPoll, openPoll, shouldOpenAudioPoll, type Poll } from "@/lib/polls";
 import {
+  BURST_LIMIT_PER_MINUTE,
+  createBurstGuard,
+  createTokenBucket,
+  rateLimitMessage,
+} from "@/lib/rate-limit";
+
+import {
   createThread,
   joinThread,
   reopenThread,
