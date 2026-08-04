@@ -104,6 +104,40 @@ function CoursesHome() {
     navigate({ to: "/auth", search: { role: "teacher" }, replace: true });
   }
 
+  if (isPending || isRejected) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6">
+        <div className="panel max-w-md p-8 text-center">
+          <Hourglass className="mx-auto size-6 text-accent" />
+          <h1 className="mt-4 font-display text-2xl font-semibold">
+            {isPending ? "Waiting for approval" : "Request not approved"}
+          </h1>
+          <p className="mt-2 text-sm/6 text-muted-foreground">
+            {isPending
+              ? "Your teacher account was sent to the owner of your organization. As soon as they approve you, your courses unlock here."
+              : "The owner of your organization did not approve this account. Contact them, or sign up again with the right organization."}
+          </p>
+          <div className="mt-6 flex justify-center gap-2">
+            <button
+              onClick={() => profileQuery.refetch()}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Check again
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+            >
+              <LogOut className="size-3.5" /> Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
+
   return (
     <div className="min-h-screen">
       <header className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-6">
