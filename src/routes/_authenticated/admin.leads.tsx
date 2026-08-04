@@ -12,13 +12,13 @@ import { listLeads, updateLeadStatus, type Lead } from "@/lib/leads.functions";
 import { LEAD_STATUSES, LEAD_STATUS_LABEL, planName, type LeadStatus } from "@/lib/plans";
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
-  head: () => ({
-    meta: [
-      { title: "Sales leads — Course Compass" },
-      { name: "description", content: "Internal lead management for the Course Compass team." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Sales leads",
+      description: "Internal lead management for the Course Compass team.",
+      path: "/admin/leads",
+      noindex: true,
+    }),
   component: LeadsPage,
 });
 

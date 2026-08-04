@@ -7,26 +7,15 @@ import { pageMeta } from "@/lib/seo";
 import { PLANS } from "@/lib/plans";
 
 export const Route = createFileRoute("/pricing")({
-  head: () => ({
-    meta: [
-      { title: "Pricing — Course Compass" },
-      {
-        name: "description",
-        content:
-          "Plans for independent tutors, coaching academies and universities. Try the demo free, or talk to us about a pilot for your organization.",
-      },
-      { property: "og:title", content: "Pricing — Course Compass" },
-      {
-        property: "og:description",
-        content:
-          "Free demo, Teacher Pro, Academy and Enterprise plans. Talk to us about a pilot — no card required.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/pricing" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "/pricing" }],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Pricing",
+      description:
+        "Plans for independent tutors, coaching academies and universities. Try the demo free, or talk to us about a pilot for your organization.",
+      path: "/pricing",
+      ogDescription:
+        "Free demo, Teacher Pro, Academy and Enterprise plans. Talk to us about a pilot — no card required.",
+    }),
   component: PricingPage,
 });
 

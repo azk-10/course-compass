@@ -6,24 +6,15 @@ import { SiteNav } from "@/components/site/SiteNav";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Course Compass — AI chat for 1000-student Zoom classes" },
-      {
-        name: "description",
-        content:
-          "Course Compass replaces Zoom chat for classes of 100–1000+ students. Hundreds of messages merge into a handful of ranked discussions you can actually answer.",
-      },
-      { property: "og:title", content: "Course Compass — AI chat for 1000-student Zoom classes" },
-      {
-        property: "og:description",
-        content:
-          "Hundreds of student messages merge into a handful of ranked discussions. Keep Zoom for video, run the conversation here.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    pageMeta({
+      title: "AI chat for 1000-student Zoom classes",
+      description:
+        "Course Compass replaces Zoom chat for classes of 100–1000+ students. Hundreds of messages merge into a handful of ranked discussions you can actually answer.",
+      path: "/",
+      ogDescription:
+        "Hundreds of student messages merge into a handful of ranked discussions. Keep Zoom for video, run the conversation here.",
+    }),
   component: Landing,
 });
 

@@ -17,25 +17,14 @@ export const Route = createFileRoute("/contact")({
       ? (search["plan"] as PlanId)
       : "teacher-pro") as PlanId,
   }),
-  head: () => ({
-    meta: [
-      { title: "Request a demo — Course Compass" },
-      {
-        name: "description",
-        content:
-          "Tell us about your classes and we will schedule a Course Compass demo and set up a pilot for your school, academy or tutoring practice.",
-      },
-      { property: "og:title", content: "Request a demo — Course Compass" },
-      {
-        property: "og:description",
-        content: "Book a Course Compass demo for your school, academy or tutoring practice.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/contact" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "/contact" }],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Request a demo",
+      description:
+        "Tell us about your classes and we will schedule a Course Compass demo and set up a pilot for your school, academy or tutoring practice.",
+      path: "/contact",
+      ogDescription: "Book a Course Compass demo for your school, academy or tutoring practice.",
+    }),
   component: ContactPage,
 });
 

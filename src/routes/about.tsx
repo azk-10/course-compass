@@ -5,25 +5,14 @@ import { SiteNav } from "@/components/site/SiteNav";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "About — Course Compass" },
-      {
-        name: "description",
-        content:
-          "Course Compass was built for teachers running live online classes of hundreds of students, where the chat moves faster than anyone can read.",
-      },
-      { property: "og:title", content: "About — Course Compass" },
-      {
-        property: "og:description",
-        content: "Why we built a Zoom chat companion for very large live classes.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/about" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "/about" }],
-  }),
+  head: () =>
+    pageMeta({
+      title: "About",
+      description:
+        "Course Compass was built for teachers running live online classes of hundreds of students, where the chat moves faster than anyone can read.",
+      path: "/about",
+      ogDescription: "Why we built a Zoom chat companion for very large live classes.",
+    }),
   component: AboutPage,
 });
 

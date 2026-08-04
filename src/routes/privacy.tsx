@@ -5,25 +5,15 @@ import { SiteNav } from "@/components/site/SiteNav";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Privacy Policy — Course Compass" },
-      {
-        name: "description",
-        content:
-          "How Course Compass handles classroom messages, teacher accounts and sales enquiries, and what choices you have over your data.",
-      },
-      { property: "og:title", content: "Privacy Policy — Course Compass" },
-      {
-        property: "og:description",
-        content: "How Course Compass handles classroom messages, accounts and sales enquiries.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/privacy" },
-      { name: "twitter:card", content: "summary" },
-    ],
-    links: [{ rel: "canonical", href: "/privacy" }],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Privacy Policy",
+      description:
+        "How Course Compass handles classroom messages, teacher accounts and sales enquiries, and what choices you have over your data.",
+      path: "/privacy",
+      ogDescription: "How Course Compass handles classroom messages, accounts and sales enquiries.",
+      twitterCard: "summary",
+    }),
   component: PrivacyPage,
 });
 

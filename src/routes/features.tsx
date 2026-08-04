@@ -16,26 +16,15 @@ import { SiteNav } from "@/components/site/SiteNav";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/features")({
-  head: () => ({
-    meta: [
-      { title: "Features — Course Compass" },
-      {
-        name: "description",
-        content:
-          "Auto-merge, message classification, thread prioritisation, classroom health checks and live polls — everything Course Compass does with a 1000-student chat.",
-      },
-      { property: "og:title", content: "Features — Course Compass" },
-      {
-        property: "og:description",
-        content:
-          "Merged discussions, Roman Urdu understanding, health checks and polls for very large live classes.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/features" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [{ rel: "canonical", href: "/features" }],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Features",
+      description:
+        "Auto-merge, message classification, thread prioritisation, classroom health checks and live polls — everything Course Compass does with a 1000-student chat.",
+      path: "/features",
+      ogDescription:
+        "Merged discussions, Roman Urdu understanding, health checks and polls for very large live classes.",
+    }),
   component: FeaturesPage,
 });
 

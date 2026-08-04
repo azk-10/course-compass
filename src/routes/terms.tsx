@@ -5,25 +5,15 @@ import { SiteNav } from "@/components/site/SiteNav";
 import { pageMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
-    meta: [
-      { title: "Terms of Service — Course Compass" },
-      {
-        name: "description",
-        content:
-          "The terms that apply to pilot use of Course Compass by schools, academies, universities and independent teachers.",
-      },
-      { property: "og:title", content: "Terms of Service — Course Compass" },
-      {
-        property: "og:description",
-        content: "Terms that apply to pilot use of Course Compass.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/terms" },
-      { name: "twitter:card", content: "summary" },
-    ],
-    links: [{ rel: "canonical", href: "/terms" }],
-  }),
+  head: () =>
+    pageMeta({
+      title: "Terms of Service",
+      description:
+        "The terms that apply to pilot use of Course Compass by schools, academies, universities and independent teachers.",
+      path: "/terms",
+      ogDescription: "Terms that apply to pilot use of Course Compass.",
+      twitterCard: "summary",
+    }),
   component: TermsPage,
 });
 
