@@ -158,7 +158,7 @@ function AuthPage() {
           ? "Sign in once — then enrol with your teacher's course code."
           : isOwner
             ? "You will own the organization and approve every teacher who joins it."
-            : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
+            : "Tell us the name of your school, college or academy — your account is approved before it unlocks.";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
