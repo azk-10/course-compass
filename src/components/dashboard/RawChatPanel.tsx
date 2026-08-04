@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Coffee, HelpCircle, Layers, MessageSquare, ShieldAlert, Wrench } from "lucide-react";
 
 import { CATEGORY_META, toCategory, type Category } from "@/lib/classify";
