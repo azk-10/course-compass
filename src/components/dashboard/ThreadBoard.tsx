@@ -112,6 +112,12 @@ export function ThreadBoard({
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+      {active.length === 0 && settled.length === 0 && (
+        <p className="rounded-xl border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
+          No teaching topics right now — only off-topic chatter, tucked away below.
+        </p>
+      )}
+
       <ul ref={listRef} className="grid gap-3">
         {active.map((item) => (
           <ThreadCard key={item.thread.id} item={item} messages={messages} />
@@ -135,13 +141,14 @@ export function ThreadBoard({
         <div className="mt-6">
           <button
             onClick={() => setShowSpam((open) => !open)}
-            className="inline-flex items-center gap-1.5 text-[0.62rem] tracking-[0.14em] text-muted-foreground uppercase hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[0.62rem] tracking-[0.14em] text-muted-foreground uppercase transition-colors hover:bg-secondary hover:text-foreground"
           >
             <ChevronDown
               className={`size-3.5 transition-transform ${showSpam ? "" : "-rotate-90"}`}
             />
-            Filtered out · {spam.length} spam thread{spam.length === 1 ? "" : "s"}
+            Filtered out · {spam.length} off-topic & spam thread{spam.length === 1 ? "" : "s"}
           </button>
+
           {showSpam && (
             <ul className="mt-2 grid gap-2 opacity-60">
               {spam.map((item) => (
