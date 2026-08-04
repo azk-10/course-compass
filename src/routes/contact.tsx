@@ -12,9 +12,9 @@ import { PLANS, type PlanId } from "@/lib/plans";
 const PLAN_IDS = PLANS.map((p) => p.id);
 
 export const Route = createFileRoute("/contact")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    plan: (PLAN_IDS.includes(search["plan"] as PlanId)
-      ? (search["plan"] as PlanId)
+  validateSearch: (search: { plan?: string }): { plan: PlanId } => ({
+    plan: (PLAN_IDS.includes(search.plan as PlanId)
+      ? (search.plan as PlanId)
       : "teacher-pro") as PlanId,
   }),
   head: () =>

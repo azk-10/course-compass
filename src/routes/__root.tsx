@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { installRipple } from "@/lib/ripple";
+import { safeSupabase } from "@/lib/env";
 
 import { Toaster } from "@/components/ui/sonner";
 
@@ -150,12 +151,16 @@ function RootComponent() {
   useEffect(() => installRipple(), []);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => sub.subscription.unsubscribe();
+    // Missing Supabase env vars (self-hosted deploys) must not take the page down.
+    const unsubscribe = safeSupabase(() => {
+      const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+        router.invalidate();
+        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      });
+      return () => sub.subscription.unsubscribe();
+    }, undefined);
+    return unsubscribe;
   }, [router, queryClient]);
 
   return (
