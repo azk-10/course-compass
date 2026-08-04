@@ -81,20 +81,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lecture Pulse — Live teacher dashboard" },
+      { title: "Course Compass" },
       {
         name: "description",
         content:
-          "Run live classroom sessions with grouped questions and real-time response statistics.",
+          "Course Compass turns hundreds of live Zoom chat messages into a handful of ranked, merged discussions teachers can actually answer.",
       },
-      { property: "og:title", content: "Lecture Pulse — Live teacher dashboard" },
+      { property: "og:site_name", content: "Course Compass" },
+      { property: "og:title", content: "Course Compass" },
       {
         property: "og:description",
         content:
-          "Run live classroom sessions with grouped questions and real-time response statistics.",
+          "Course Compass turns hundreds of live Zoom chat messages into a handful of ranked, merged discussions teachers can actually answer.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Course Compass" },
+      {
+        name: "twitter:description",
+        content:
+          "Hundreds of student messages merge into a handful of ranked discussions. Keep Zoom for video, run the conversation here.",
+      },
+
     ],
     links: [
       {
