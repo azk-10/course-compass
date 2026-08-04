@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
 import { StudentChat } from "@/components/student/StudentChat";
+import { DEFAULT_SETTINGS, fetchSettings } from "@/lib/settings";
 import {
   fetchCourseByCode,
   fetchCoursesByIds,
@@ -381,6 +382,13 @@ function CourseRoom({
   });
   const liveClass = liveQuery.data ?? null;
 
+  // Students obey the same thresholds their teacher configured.
+  const settingsQuery = useQuery({
+    queryKey: ["classroom-settings", liveClass?.teacher_id],
+    queryFn: () => fetchSettings({ organizationId: null, teacherId: liveClass!.teacher_id }),
+    enabled: Boolean(liveClass?.teacher_id),
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel(`session-${courseId}`)
@@ -413,7 +421,11 @@ function CourseRoom({
       </div>
 
       {liveClass ? (
-        <StudentChat liveClass={liveClass} studentName={myName} />
+        <StudentChat
+          liveClass={liveClass}
+          studentName={myName}
+          settings={settingsQuery.data ?? DEFAULT_SETTINGS}
+        />
       ) : (
         <div className="panel flex flex-col items-center gap-2 px-6 py-16 text-center">
           <GraduationCap className="size-6 text-muted-foreground" />

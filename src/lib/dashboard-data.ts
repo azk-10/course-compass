@@ -32,13 +32,14 @@ export type Session = {
   quiz_answer_type: string | null;
   quiz_options: string[];
   resolve_threshold: number;
+  chat_paused: boolean;
   started_at: string;
   ended_at: string | null;
 };
 
 const COURSE_FIELDS = "id, title, term, accent, status, is_crash, archived_at, join_code";
 const SESSION_FIELDS =
-  "id, course_id, title, status, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, resolve_threshold, started_at, ended_at";
+  "id, course_id, title, status, mode, pinned_message_id, quiz_prompt, quiz_answer_type, quiz_options, resolve_threshold, chat_paused, started_at, ended_at";
 
 type RawSession = Omit<Session, "quiz_options"> & { quiz_options: unknown };
 
