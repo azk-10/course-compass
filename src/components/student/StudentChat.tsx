@@ -326,10 +326,24 @@ export function StudentChat({
       toast.info("Slow down a moment — one message at a time.");
       return;
     }
+    // Mirrors the database limits so students are told before the round-trip.
+    const burstWait = burstGuard.current.take();
+    if (burstWait > 0) {
+      setCooldownUntil(Date.now() + burstWait);
+      toast.info("You've sent a lot of messages — take a short break before sending more.");
+      return;
+    }
+    const bucketWait = bucket.current.take();
+    if (bucketWait > 0) {
+      setCooldownUntil(Date.now() + bucketWait);
+      toast.info("Slow down a moment — one message at a time.");
+      return;
+    }
     setCooldownUntil(Date.now() + settings.cooldown_ms);
     setDraft("");
     postMutation.mutate(body);
   }
+
 
   const statusMeta = {
     connecting: { label: "Connecting…", className: "text-muted-foreground" },
