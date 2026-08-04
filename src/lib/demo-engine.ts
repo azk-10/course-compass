@@ -75,22 +75,8 @@ export const POOLS = {
     "audio cutting",
     "sir mic mute hai",
   ],
-  spam: [
-    "😂😂😂",
-    "hello",
-    "hi",
-    "Sir",
-    "asalamualaikum",
-    "!!!!!",
-    "www.freenotes.example",
-  ],
-  general: [
-    "whats up",
-    "all good?",
-    "thanks sir",
-    "kaise ho",
-    "how are you",
-  ],
+  spam: ["😂😂😂", "hello", "hi", "Sir", "asalamualaikum", "!!!!!", "www.freenotes.example"],
+  general: ["whats up", "all good?", "thanks sir", "kaise ho", "how are you"],
 } as const;
 
 export type BurstKind = keyof typeof POOLS;
@@ -127,7 +113,7 @@ let seq = 0;
 /** Monotonic across the whole module so ids stay unique even after a reset. */
 const uid = (prefix: string) => `${prefix}-${(seq += 1)}`;
 
-export const pick = <T,>(list: readonly T[]): T =>
+export const pick = <T>(list: readonly T[]): T =>
   list[Math.floor(Math.random() * list.length)] as T;
 
 export function createDemoState(target = 250): DemoState {
@@ -166,8 +152,7 @@ function titleFor(body: string, category: Category): string {
 
 /** Runs one message through classification + auto-merge, mutating the state. */
 export function ingest(state: DemoState, body: string, label: string): void {
-  const started =
-    typeof performance !== "undefined" ? performance.now() : Date.now();
+  const started = typeof performance !== "undefined" ? performance.now() : Date.now();
   const { category, confidence } = localClassify(body);
   const now = new Date().toISOString();
 
@@ -179,12 +164,12 @@ export function ingest(state: DemoState, body: string, label: string): void {
   // Technical, off-topic and spam collapse into one bucket per kind; questions
   // and answers merge on semantic similarity, exactly like the live product.
   let thread =
-    (category === "question" || category === "answer"
+    category === "question" || category === "answer"
       ? (open
           .map((item) => ({ item, score: textSimilarity(body, item.title) }))
           .filter((entry) => entry.score >= 0.45)
           .sort((a, b) => b.score - a.score)[0]?.item ?? null)
-      : (open.find((item) => item.title === bucketTitle) ?? null));
+      : (open.find((item) => item.title === bucketTitle) ?? null);
 
   const mergedIntoExisting = Boolean(thread);
   if (!thread) {
@@ -223,7 +208,9 @@ export function ingest(state: DemoState, body: string, label: string): void {
   state.totalMessages += 1;
   state.counts[category] += 1;
 
-  if (!state.participants.some((row) => row.thread_id === thread.id && row.student_label === label)) {
+  if (
+    !state.participants.some((row) => row.thread_id === thread.id && row.student_label === label)
+  ) {
     state.participants = [
       ...state.participants,
       { id: uid("p"), thread_id: thread.id, student_label: label },
@@ -248,13 +235,9 @@ export function ingest(state: DemoState, body: string, label: string): void {
     }
   }
 
-  state.zoom = [
-    ...state.zoom,
-    { id: uid("z"), label, body },
-  ].slice(-MAX_ZOOM);
+  state.zoom = [...state.zoom, { id: uid("z"), label, body }].slice(-MAX_ZOOM);
 
-  const elapsed =
-    (typeof performance !== "undefined" ? performance.now() : Date.now()) - started;
+  const elapsed = (typeof performance !== "undefined" ? performance.now() : Date.now()) - started;
   const metrics = state.metrics;
   metrics.processed += 1;
   if (mergedIntoExisting) metrics.merged += 1;

@@ -74,8 +74,6 @@ function Landing() {
             Teacher sign in
           </Link>
         </div>
-
-
       </header>
 
       <main className="mx-auto max-w-6xl px-6 pb-24">
@@ -108,7 +106,6 @@ function Landing() {
               Open your dashboard
             </Link>
           </div>
-
         </section>
 
         <section className="grid gap-4 sm:grid-cols-3">

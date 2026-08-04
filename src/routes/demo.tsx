@@ -15,7 +15,12 @@ import {
   Wrench,
 } from "lucide-react";
 
-import { ChatTabList, RawChatList, filterByTab, type ChatTab } from "@/components/dashboard/RawChatPanel";
+import {
+  ChatTabList,
+  RawChatList,
+  filterByTab,
+  type ChatTab,
+} from "@/components/dashboard/RawChatPanel";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
 import { buildStats } from "@/lib/threads";
 import {
@@ -55,13 +60,14 @@ export const Route = createFileRoute("/demo")({
 
 const SIZES = [50, 100, 250, 500, 750, 1000];
 
-const CONTROLS: { key: BurstKind | "poll"; label: string; icon: typeof Sparkles; count: number }[] = [
-  { key: "question", label: "Question storm", icon: Sparkles, count: 24 },
-  { key: "answer", label: "Answers", icon: Activity, count: 18 },
-  { key: "spam", label: "Spam", icon: Ban, count: 14 },
-  { key: "technical", label: "Audio issues", icon: Volume2, count: 12 },
-  { key: "poll", label: "Poll responses", icon: Gauge, count: 60 },
-];
+const CONTROLS: { key: BurstKind | "poll"; label: string; icon: typeof Sparkles; count: number }[] =
+  [
+    { key: "question", label: "Question storm", icon: Sparkles, count: 24 },
+    { key: "answer", label: "Answers", icon: Activity, count: 18 },
+    { key: "spam", label: "Spam", icon: Ban, count: 14 },
+    { key: "technical", label: "Audio issues", icon: Volume2, count: 12 },
+    { key: "poll", label: "Poll responses", icon: Gauge, count: 60 },
+  ];
 
 function DemoPage() {
   const stateRef = useRef<DemoState>(createDemoState(250));
@@ -148,9 +154,9 @@ function DemoPage() {
             The teacher clicks one button. The AI does the rest.
           </h1>
           <p className="max-w-xl text-sm/7 text-muted-foreground">
-            This is the real product running against a simulated class of{" "}
-            {view.targetStudents} students — same classification, same auto-merge, same thread
-            priority. Nothing is pre-recorded.
+            This is the real product running against a simulated class of {view.targetStudents}{" "}
+            students — same classification, same auto-merge, same thread priority. Nothing is
+            pre-recorded.
           </p>
           <button
             onClick={() => {
@@ -202,8 +208,7 @@ function DemoPage() {
                   “Can you hear the teacher?” —{" "}
                   <span className="font-semibold text-accent">
                     {Math.round(
-                      (view.pollResponses.yes /
-                        (view.pollResponses.yes + view.pollResponses.no)) *
+                      (view.pollResponses.yes / (view.pollResponses.yes + view.pollResponses.no)) *
                         100,
                     )}
                     % yes
@@ -281,7 +286,9 @@ function DemoPage() {
             {dev && (
               <div className="panel space-y-1 p-4 font-mono text-[11px] text-muted-foreground">
                 <p>merge confidence · {view.metrics.lastConfidence.toFixed(2)}</p>
-                <p>merged / processed · {view.metrics.merged}/{view.metrics.processed}</p>
+                <p>
+                  merged / processed · {view.metrics.merged}/{view.metrics.processed}
+                </p>
                 <p>merge time · {view.metrics.lastMergeMs.toFixed(2)} ms</p>
                 <p>avg merge time · {view.metrics.avgMergeMs.toFixed(2)} ms</p>
                 <p>db latency · {view.metrics.dbLatencyMs} ms</p>
