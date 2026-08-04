@@ -170,6 +170,27 @@ export type Database = {
           },
         ]
       }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       poll_responses: {
         Row: {
           answer: string
@@ -259,24 +280,41 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
+          organization_id: string | null
           role: string
         }
         Insert: {
+          approval_status?: string
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id: string
+          organization_id?: string | null
           role?: string
         }
         Update: {
+          approval_status?: string
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id?: string
+          organization_id?: string | null
           role?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sessions: {
         Row: {
@@ -511,6 +549,10 @@ export type Database = {
     }
     Functions: {
       generate_course_code: { Args: never; Returns: string }
+      is_org_owner: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
