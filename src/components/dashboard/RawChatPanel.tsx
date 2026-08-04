@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Coffee, HelpCircle, Layers, MessageSquare, ShieldAlert, Wrench } from "lucide-react";
 
 import { CATEGORY_META, toCategory, type Category } from "@/lib/classify";
@@ -25,28 +26,73 @@ export function filterByTab(messages: ChatMessage[], tab: ChatTab) {
 }
 
 /**
- * Sidebar navigation for the raw Zoom-style transcript. It only shows the live
- * counts — the actual messages open in the middle column so the teacher reads
- * them where the discussion board normally sits.
+ * Per-tab "already read" marker. Once the teacher opens a tab its badge clears,
+ * and only messages that arrive afterwards count again.
+ */
+function useSeenMarks(sessionKey: string, tab: ChatTab, messages: ChatMessage[]) {
+  const storageKey = `cc-chat-seen-${sessionKey}`;
+  const [seen, setSeen] = useState<Record<string, string>>({});
+
+  // Reload marks whenever the session changes.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      setSeen(raw ? (JSON.parse(raw) as Record<string, string>) : {});
+    } catch {
+      setSeen({});
+    }
+  }, [storageKey]);
+
+  // While a tab is open, everything visible in it is considered read.
+  useEffect(() => {
+    if (tab === "topics") return;
+    const list = filterByTab(messages, tab);
+    const latest = list.reduce((max, m) => (m.created_at > max ? m.created_at : max), "");
+    if (!latest) return;
+    setSeen((prev) => {
+      if ((prev[tab] ?? "") >= latest) return prev;
+      const next = { ...prev, [tab]: latest };
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        /* storage is best-effort */
+      }
+      return next;
+    });
+  }, [tab, messages, storageKey]);
+
+  return (key: ChatTab) =>
+    filterByTab(messages, key).filter((m) => m.created_at > (seen[key] ?? "")).length;
+}
+
+/**
+ * Sidebar navigation for the raw Zoom-style transcript. Badges show what is
+ * still *unread* per category, and how many topic threads are still unresolved.
  */
 export function ChatTabList({
   messages,
   tab,
   onChange,
   threadCount,
+  sessionKey = "none",
   collapsed = false,
 }: {
   messages: ChatMessage[];
   tab: ChatTab;
   onChange: (tab: ChatTab) => void;
+  /** Threads still awaiting resolution. */
   threadCount: number;
+  sessionKey?: string;
   collapsed?: boolean;
 }) {
+  const unreadFor = useSeenMarks(sessionKey, tab, messages);
+
   return (
     <nav className={`flex flex-col gap-1 pb-4 ${collapsed ? "px-2" : "px-3"}`}>
       {CHAT_TABS.map(({ key, label, icon: Icon }) => {
-        const count = key === "topics" ? threadCount : filterByTab(messages, key).length;
+        const count = key === "topics" ? threadCount : unreadFor(key);
         const active = tab === key;
+
         return (
           <button
             key={key}
@@ -78,10 +124,16 @@ export function ChatTabList({
             ) : (
               <>
                 <span className="truncate">{label}</span>
-                <span className="ml-auto rounded-full bg-sidebar-accent px-1.5 text-[0.62rem]">
-                  {count}
-                </span>
+                {count > 0 && (
+                  <span
+                    title={key === "topics" ? "Unresolved topics" : "Unread messages"}
+                    className="ml-auto rounded-full bg-sidebar-primary px-1.5 text-[0.62rem] font-semibold text-sidebar-primary-foreground"
+                  >
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
               </>
+
             )}
           </button>
         );
