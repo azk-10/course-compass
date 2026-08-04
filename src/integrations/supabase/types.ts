@@ -457,6 +457,60 @@ export type Database = {
           },
         ]
       }
+      sales_leads: {
+        Row: {
+          consent: boolean
+          country: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          organization: string
+          phone: string
+          plan: string
+          role: string
+          status: string
+          students: number | null
+          teachers: number | null
+          updated_at: string
+        }
+        Insert: {
+          consent?: boolean
+          country: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          organization: string
+          phone: string
+          plan?: string
+          role: string
+          status?: string
+          students?: number | null
+          teachers?: number | null
+          updated_at?: string
+        }
+        Update: {
+          consent?: boolean
+          country?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          organization?: string
+          phone?: string
+          plan?: string
+          role?: string
+          status?: string
+          students?: number | null
+          teachers?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       session_blocks: {
         Row: {
           created_at: string
@@ -766,6 +820,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -787,6 +862,13 @@ export type Database = {
         }[]
       }
       generate_course_code: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       in_session: { Args: { _session: string }; Returns: boolean }
       is_org_owner: {
         Args: { _org_id: string; _user_id: string }
@@ -800,7 +882,7 @@ export type Database = {
       is_session_teacher: { Args: { _session: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -927,6 +1009,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const
