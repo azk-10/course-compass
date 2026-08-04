@@ -18,7 +18,6 @@ import {
 import {
   ChatTabList,
   RawChatList,
-  filterByTab,
   type ChatTab,
 } from "@/components/dashboard/RawChatPanel";
 import { ThreadBoard } from "@/components/dashboard/ThreadBoard";
