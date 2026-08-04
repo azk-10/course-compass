@@ -45,9 +45,8 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
-  const [orgQuery, setOrgQuery] = useState("");
-  const [orgs, setOrgs] = useState<Organization[]>([]);
   const [org, setOrg] = useState<Organization | null>(null);
+  const [independent, setIndependent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -64,28 +63,13 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, isStudent]);
 
-  useEffect(() => {
-    if (!needsOrgPicker) return;
-    let cancelled = false;
-    const timer = setTimeout(() => {
-      searchOrganizations(orgQuery)
-        .then((rows) => {
-          if (!cancelled) setOrgs(rows);
-        })
-        .catch(() => undefined);
-    }, 200);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [orgQuery, needsOrgPicker]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (needsOrgPicker && !org) {
-      toast.error("Pick the organization you belong to");
+    if (needsOrgPicker && !org && !independent) {
+      toast.error("Pick your organization, or continue as an independent teacher");
       return;
     }
+
     if (isOwner && mode === "signup" && !orgName.trim()) {
       toast.error("Give your organization a name");
       return;
