@@ -66,6 +66,12 @@ function PricingPage() {
               <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
               <p className="font-paper-display mt-5 text-2xl font-bold">{plan.price}</p>
               <p className="mt-1 text-xs text-muted-foreground">{plan.audience}</p>
+              {plan.id === "enterprise" ? (
+                <p className="mt-3 rounded-md bg-secondary/60 p-2.5 text-xs/5 text-muted-foreground">
+                  Looking for a pilot? We&apos;re currently partnering with selected schools and
+                  academies to test Course Compass in live classrooms.
+                </p>
+              ) : null}
 
               <ul className="mt-5 flex-1 space-y-2.5">
                 {plan.features.map((feature) => (
