@@ -162,13 +162,25 @@ function ThreadCard({
   const meta = HEALTH[item.health];
   const category = CATEGORY_META[item.category];
   const Icon = meta.icon;
+  const devMode = readDevMode();
+  const confidence = messages
+    .filter((message) => message.thread_id === item.thread.id && message.confidence !== null)
+    .slice(-1)[0]?.confidence;
   const examples = messages
     .filter((message) => message.thread_id === item.thread.id && !message.is_teacher)
     .slice(-3)
     .map((message) => message.body);
 
   return (
-    <li className={`panel p-4 ${meta.bg} ${meta.ring}`}>
+    <li
+      data-thread-id={item.thread.id}
+      className={`panel rise-in p-4 transition-shadow ${meta.bg} ${meta.ring}`}
+    >
+      {devMode && confidence !== null && confidence !== undefined && (
+        <span className="float-right ml-2 rounded bg-muted px-1.5 py-0.5 font-mono text-[0.6rem] text-muted-foreground">
+          ai {Number(confidence).toFixed(2)}
+        </span>
+      )}
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
           <h3 className="font-display text-base font-semibold break-words">{item.thread.title}</h3>
