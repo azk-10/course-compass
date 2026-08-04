@@ -14,10 +14,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "withdrawn", label: "Withdrawn" },
 ];
 
-const META: Record<
-  ApprovalEvent["action"],
-  { label: string; icon: typeof Check; tone: string }
-> = {
+const META: Record<ApprovalEvent["action"], { label: string; icon: typeof Check; tone: string }> = {
   requested: { label: "Requested access", icon: Send, tone: "text-primary" },
   approved: { label: "Approved", icon: Check, tone: "text-success" },
   rejected: { label: "Rejected", icon: X, tone: "text-destructive" },

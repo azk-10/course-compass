@@ -28,12 +28,7 @@ import { SafetyMenu } from "@/components/dashboard/SafetyMenu";
 import { useSessionPulse } from "@/hooks/useSessionPulse";
 import { fetchMyProfile } from "@/lib/org";
 import { readDevMode, setDevMode } from "@/lib/logs";
-import {
-  liftBlock,
-  muteStudent,
-  removeStudent,
-  setChatPaused,
-} from "@/lib/moderation";
+import { liftBlock, muteStudent, removeStudent, setChatPaused } from "@/lib/moderation";
 import {
   DEFAULT_SETTINGS,
   fetchSettings,
@@ -138,7 +133,6 @@ function CourseDashboard() {
       document.body.style.cursor = "";
     };
   }, [resizing]);
-
 
   const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
   const activeCourse = coursesQuery.data?.find((course) => course.id === courseId) ?? null;
@@ -342,7 +336,9 @@ function CourseDashboard() {
         className={`relative z-40 flex shrink-0 flex-col overflow-y-auto bg-sidebar text-sidebar-foreground sm:static sm:h-screen ${
           resizing ? "" : "transition-[width] duration-300 ease-out"
         } ${
-          railOpen ? "fixed inset-y-0 left-0 w-60 shadow-xl" : "w-14 border-r border-sidebar-accent/40"
+          railOpen
+            ? "fixed inset-y-0 left-0 w-60 shadow-xl"
+            : "w-14 border-r border-sidebar-accent/40"
         }`}
       >
         {railOpen && isDesktop && (
@@ -421,8 +417,6 @@ function CourseDashboard() {
         />
       </aside>
 
-
-
       <main className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
           <div className="min-w-0">
@@ -468,9 +462,7 @@ function CourseDashboard() {
                 blocks={blocks}
                 busy={safetyMutation.isPending}
                 onPause={(paused) => safetyMutation.mutate({ type: "pause", paused })}
-                onMute={(label, minutes) =>
-                  safetyMutation.mutate({ type: "mute", label, minutes })
-                }
+                onMute={(label, minutes) => safetyMutation.mutate({ type: "mute", label, minutes })}
                 onRemove={(label) => safetyMutation.mutate({ type: "remove", label })}
                 onLift={(label) => safetyMutation.mutate({ type: "lift", label })}
               />

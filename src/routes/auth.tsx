@@ -146,8 +146,8 @@ function AuthPage() {
             Run the room, not the slides.
           </h1>
           <p className="mt-4 text-sm/6 opacity-80">
-            Group your questions, launch a live session in one tap and watch participation,
-            accuracy and pace update as students answer.
+            Group your questions, launch a live session in one tap and watch participation, accuracy
+            and pace update as students answer.
           </p>
         </div>
         <p className="text-xs opacity-60">Built for lecturers, tutors and lab instructors.</p>
@@ -175,8 +175,8 @@ function AuthPage() {
 
           {sent ? (
             <p className="rounded-lg border border-border bg-secondary p-4 text-sm">
-              Confirmation email sent to <strong>{email}</strong>. Click the link to finish
-              setting up your account.
+              Confirmation email sent to <strong>{email}</strong>. Click the link to finish setting
+              up your account.
               {org && ` The owner of ${org.name} then approves you.`}
             </p>
           ) : (
@@ -229,7 +229,6 @@ function AuthPage() {
                 </div>
               )}
 
-
               <div>
                 <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
                   Email
@@ -263,7 +262,11 @@ function AuthPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {busy && <Loader2 className="size-4 animate-spin" />}
-                {mode === "signin" ? "Sign in" : isOwner ? "Register organization" : "Create account"}
+                {mode === "signin"
+                  ? "Sign in"
+                  : isOwner
+                    ? "Register organization"
+                    : "Create account"}
               </button>
             </form>
           )}

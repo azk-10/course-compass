@@ -92,10 +92,7 @@ export async function requestOrganizationJoin(orgId: string) {
   const { data: auth } = await supabase.auth.getUser();
   const id = auth.user?.id;
   if (!id) throw new Error("Not signed in");
-  const { error } = await supabase
-    .from("profiles")
-    .update({ organization_id: orgId })
-    .eq("id", id);
+  const { error } = await supabase.from("profiles").update({ organization_id: orgId }).eq("id", id);
   if (error) throw error;
 }
 
@@ -104,10 +101,7 @@ export async function leaveOrganization() {
   const { data: auth } = await supabase.auth.getUser();
   const id = auth.user?.id;
   if (!id) throw new Error("Not signed in");
-  const { error } = await supabase
-    .from("profiles")
-    .update({ organization_id: null })
-    .eq("id", id);
+  const { error } = await supabase.from("profiles").update({ organization_id: null }).eq("id", id);
   if (error) throw error;
 }
 

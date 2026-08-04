@@ -1,6 +1,5 @@
 import { Radio, Users } from "lucide-react";
 
-
 import { toCategory } from "@/lib/classify";
 import type { ChatMessage } from "@/lib/live-chat";
 
@@ -50,9 +49,7 @@ export function QuickStats({
   const answers = messages.filter((message) => toCategory(message.category) === "answer").length;
   const issues = stats.filter((item) => item.category === "technical").length;
   const upvotes = stats.reduce((sum, item) => sum + item.upvotes, 0);
-  const open = stats.filter(
-    (item) => item.health !== "settled" && item.category !== "spam",
-  ).length;
+  const open = stats.filter((item) => item.health !== "settled" && item.category !== "spam").length;
   const minutes = session
     ? Math.max(0, Math.round((Date.now() - new Date(session.started_at).getTime()) / 60000))
     : 0;
@@ -65,7 +62,6 @@ export function QuickStats({
     { label: "Online", value: online },
     { label: "Minutes", value: minutes },
   ];
-
 
   return (
     <div className="panel p-5">

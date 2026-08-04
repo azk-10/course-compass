@@ -45,7 +45,6 @@ export function StudentApprovals({
             </ul>
           )}
 
-
           {approved.length > 0 && (
             <div className="mt-4">
               <p className="text-[0.68rem] tracking-[0.12em] text-muted-foreground uppercase">

@@ -43,7 +43,6 @@ export type ThreadStats = {
 const THREAD_FIELDS =
   "id, session_id, course_id, teacher_id, title, status, category, created_at, last_activity_at";
 
-
 /* ---------------------------------- reads ---------------------------------- */
 
 export async function fetchThreads(sessionId: string): Promise<Thread[]> {
@@ -239,13 +238,7 @@ export function buildStats(input: {
 
       // Spam never competes for the teacher's attention.
       const priority =
-        category === "spam"
-          ? -1000
-          : boost
-            ? 10_000
-            : settled
-              ? -1
-              : s + up * 2 + help * 3 - ok;
+        category === "spam" ? -1000 : boost ? 10_000 : settled ? -1 : s + up * 2 + help * 3 - ok;
 
       return {
         thread,
@@ -265,7 +258,6 @@ export function buildStats(input: {
         b.thread.last_activity_at.localeCompare(a.thread.last_activity_at),
     );
 }
-
 
 /** Best existing thread for a draft message, when it is close enough to merge. */
 export function findSimilarThread(draft: string, threads: Thread[], min = 0.45) {
@@ -294,8 +286,6 @@ export async function reopenThread(threadId: string): Promise<void> {
 export async function setThreadCategory(threadId: string, category: Category): Promise<void> {
   await supabase.from("threads").update({ category }).eq("id", threadId);
 }
-
-
 
 export async function leaveThread(input: {
   threadId: string;
@@ -343,7 +333,6 @@ export async function separateMessage(input: {
     category: input.category ?? "question",
   });
 
-
   const { error } = await supabase
     .from("messages")
     .update({ thread_id: thread.id })
@@ -355,4 +344,3 @@ export async function separateMessage(input: {
   }
   return thread;
 }
-

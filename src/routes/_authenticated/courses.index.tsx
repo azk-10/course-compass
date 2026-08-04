@@ -20,13 +20,7 @@ import { ApprovalsAuditLog } from "@/components/dashboard/ApprovalsAuditLog";
 import { OrgApprovals } from "@/components/dashboard/OrgApprovals";
 import { PendingApproval } from "@/components/org/PendingApproval";
 import { fetchMyProfile, fetchOwnedOrganization } from "@/lib/org";
-import {
-  createCourse,
-  fetchCourses,
-  setCourseArchived,
-  type Course,
-} from "@/lib/dashboard-data";
-
+import { createCourse, fetchCourses, setCourseArchived, type Course } from "@/lib/dashboard-data";
 
 export const Route = createFileRoute("/_authenticated/courses/")({
   head: () => ({
@@ -79,7 +73,6 @@ function CoursesHome() {
   const active = courses.filter((course) => course.status !== "archived");
   const archived = courses.filter((course) => course.status === "archived");
 
-
   const createMutation = useMutation({
     mutationFn: createCourse,
     onSuccess: (course) => {
@@ -115,9 +108,6 @@ function CoursesHome() {
       />
     );
   }
-
-
-
 
   return (
     <div className="min-h-screen">
@@ -200,7 +190,6 @@ function CoursesHome() {
         {orgQuery.data && <ApprovalsAuditLog organization={orgQuery.data} />}
       </main>
 
-
       <NewCourseDialog
         open={open}
         pending={createMutation.isPending}
@@ -217,7 +206,11 @@ function CourseCard({ course }: { course: Course }) {
     <li className="panel flex flex-col gap-4 p-5">
       <div className="min-w-0">
         <p className="flex items-center gap-1.5 text-[0.68rem] tracking-[0.14em] text-muted-foreground uppercase">
-          {course.is_crash ? <Zap className="size-3.5 text-accent" /> : <BookOpen className="size-3.5" />}
+          {course.is_crash ? (
+            <Zap className="size-3.5 text-accent" />
+          ) : (
+            <BookOpen className="size-3.5" />
+          )}
           {course.is_crash ? "Crash course" : "Course"}
         </p>
         <h2 className="mt-1 truncate font-display text-lg font-semibold">{course.title}</h2>
@@ -246,9 +239,7 @@ function CourseCard({ course }: { course: Course }) {
       </div>
 
       <button
-        onClick={() =>
-          navigate({ to: "/courses/$courseId", params: { courseId: course.id } })
-        }
+        onClick={() => navigate({ to: "/courses/$courseId", params: { courseId: course.id } })}
         className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
       >
         Enter course <ArrowRight className="size-4" />

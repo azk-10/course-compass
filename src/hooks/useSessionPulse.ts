@@ -28,12 +28,22 @@ export function useSessionPulse(sessionId: string | null) {
       .channel(`pulse:${sessionId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "session_blocks", filter: `session_id=eq.${sessionId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "session_blocks",
+          filter: `session_id=eq.${sessionId}`,
+        },
         () => void queryClient.invalidateQueries({ queryKey: ["blocks", sessionId] }),
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "session_reactions", filter: `session_id=eq.${sessionId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "session_reactions",
+          filter: `session_id=eq.${sessionId}`,
+        },
         () => void queryClient.invalidateQueries({ queryKey: ["reactions", sessionId] }),
       )
       .subscribe();

@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bug, Minus, Plus, Settings2 } from "lucide-react";
 
-import {
-  SETTING_LIMITS,
-  clampSetting,
-  type ClassroomSettings,
-} from "@/lib/settings";
+import { SETTING_LIMITS, clampSetting, type ClassroomSettings } from "@/lib/settings";
 
 type NumericKey = keyof typeof SETTING_LIMITS;
 
@@ -47,7 +43,6 @@ export function ClassroomSettingsPanel({
 }) {
   const [draft, setDraft] = useState(settings);
   const [openKey, setOpenKey] = useState<NumericKey>("resolve_pct");
-
 
   useEffect(() => {
     if (!saving) setDraft(settings);
@@ -181,7 +176,6 @@ export function ClassroomSettingsPanel({
                       )}
                     </p>
                   )}
-
                 </div>
               )}
             </div>

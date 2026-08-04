@@ -257,12 +257,17 @@ function titleCase(text: string) {
 /* ------------------------------- questions -------------------------------- */
 
 /** Signature of a message: an intent key when recognisable, else its token set. */
-function questionSignature(body: string): { key: string | null; label: string | null; set: Set<string> } {
+function questionSignature(body: string): {
+  key: string | null;
+  label: string | null;
+  set: Set<string>;
+} {
   const list = tokens(body);
   const set = new Set(list);
 
   const questionIndex = list.indexOf("question");
-  const number = questionIndex >= 0 ? list.slice(questionIndex + 1).find((t) => /^\d+$/.test(t)) : undefined;
+  const number =
+    questionIndex >= 0 ? list.slice(questionIndex + 1).find((t) => /^\d+$/.test(t)) : undefined;
   if (number) {
     const part = /part\s*\(?([a-d])\)?/.exec(baseNormalize(body))?.[1];
     return part

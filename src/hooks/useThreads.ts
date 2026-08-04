@@ -17,7 +17,6 @@ import {
  * When a classroom audio check fails, audio threads jump to the very top.
  */
 export function useThreads(sessionId: string | null, threshold = 75, audioAlert = false) {
-
   const queryClient = useQueryClient();
 
   const threadsQuery = useQuery({
@@ -78,7 +77,6 @@ export function useThreads(sessionId: string | null, threshold = 75, audioAlert 
       : [];
     return buildStats({ threads, participants, votes, feedback, threshold, boosted });
   }, [threads, participants, votes, feedback, threshold, audioAlert]);
-
 
   return {
     threads,

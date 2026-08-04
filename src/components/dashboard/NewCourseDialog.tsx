@@ -12,7 +12,12 @@ export function NewCourseDialog({
   open: boolean;
   pending: boolean;
   onClose: () => void;
-  onCreate: (input: { title: string; term: string | null; accent: string; isCrash: boolean }) => void;
+  onCreate: (input: {
+    title: string;
+    term: string | null;
+    accent: string;
+    isCrash: boolean;
+  }) => void;
 }) {
   const [title, setTitle] = useState("");
   const [term, setTerm] = useState("");

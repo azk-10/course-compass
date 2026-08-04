@@ -8,9 +8,7 @@ import { textSimilarity } from "@/lib/grouping";
 
 const JudgeInput = z.object({
   draft: z.string().min(1).max(1000),
-  candidates: z
-    .array(z.object({ id: z.string(), title: z.string(), category: z.string() }))
-    .max(8),
+  candidates: z.array(z.object({ id: z.string(), title: z.string(), category: z.string() })).max(8),
 });
 
 export type Verdict = {
@@ -86,9 +84,7 @@ export const classifyMessage = createServerFn({ method: "POST" })
         threadId: match && toCategory(match.category) === category ? match.id : null,
         title: output.title?.slice(0, 80) ?? null,
       };
-
     } catch {
       return fallback();
     }
   });
-

@@ -133,7 +133,9 @@ export function ThreadBoard({
             onClick={() => setShowSpam((open) => !open)}
             className="inline-flex items-center gap-1.5 text-[0.62rem] tracking-[0.14em] text-muted-foreground uppercase hover:text-foreground"
           >
-            <ChevronDown className={`size-3.5 transition-transform ${showSpam ? "" : "-rotate-90"}`} />
+            <ChevronDown
+              className={`size-3.5 transition-transform ${showSpam ? "" : "-rotate-90"}`}
+            />
             Filtered out · {spam.length} spam thread{spam.length === 1 ? "" : "s"}
           </button>
           {showSpam && (
@@ -148,7 +150,6 @@ export function ThreadBoard({
     </div>
   );
 }
-
 
 function ThreadCard({
   item,
@@ -217,7 +218,10 @@ function ThreadCard({
       {!compact && examples.length > 0 && (
         <ul className="mt-3 space-y-0.5 rounded-lg bg-secondary px-3 py-2">
           {examples.map((example, index) => (
-            <li key={`${item.thread.id}-${index}`} className="text-sm break-words text-foreground/90">
+            <li
+              key={`${item.thread.id}-${index}`}
+              className="text-sm break-words text-foreground/90"
+            >
               • {example}
             </li>
           ))}
