@@ -8,6 +8,7 @@ import {
   BookOpen,
   Compass,
   Copy,
+  Hourglass,
   LogOut,
   Plus,
   Zap,
@@ -16,12 +17,15 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
+import { OrgApprovals } from "@/components/dashboard/OrgApprovals";
+import { fetchMyProfile, fetchOwnedOrganization } from "@/lib/org";
 import {
   createCourse,
   fetchCourses,
   setCourseArchived,
   type Course,
 } from "@/lib/dashboard-data";
+
 
 export const Route = createFileRoute("/_authenticated/courses/")({
   head: () => ({
@@ -54,10 +58,26 @@ function CoursesHome() {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
   }, []);
 
-  const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
+  const profileQuery = useQuery({ queryKey: ["my-profile"], queryFn: fetchMyProfile });
+  const profile = profileQuery.data ?? null;
+  const isPending = profile?.approval_status === "pending";
+  const isRejected = profile?.approval_status === "rejected";
+
+  const orgQuery = useQuery({
+    queryKey: ["owned-org"],
+    queryFn: fetchOwnedOrganization,
+    enabled: profile?.role === "owner",
+  });
+
+  const coursesQuery = useQuery({
+    queryKey: ["courses"],
+    queryFn: fetchCourses,
+    enabled: !!profile && !isPending && !isRejected,
+  });
   const courses = coursesQuery.data ?? [];
   const active = courses.filter((course) => course.status !== "archived");
   const archived = courses.filter((course) => course.status === "archived");
+
 
   const createMutation = useMutation({
     mutationFn: createCourse,
@@ -84,6 +104,40 @@ function CoursesHome() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", search: { role: "teacher" }, replace: true });
   }
+
+  if (isPending || isRejected) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6">
+        <div className="panel max-w-md p-8 text-center">
+          <Hourglass className="mx-auto size-6 text-accent" />
+          <h1 className="mt-4 font-display text-2xl font-semibold">
+            {isPending ? "Waiting for approval" : "Request not approved"}
+          </h1>
+          <p className="mt-2 text-sm/6 text-muted-foreground">
+            {isPending
+              ? "Your teacher account was sent to the owner of your organization. As soon as they approve you, your courses unlock here."
+              : "The owner of your organization did not approve this account. Contact them, or sign up again with the right organization."}
+          </p>
+          <div className="mt-6 flex justify-center gap-2">
+            <button
+              onClick={() => profileQuery.refetch()}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Check again
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+            >
+              <LogOut className="size-3.5" /> Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
 
   return (
     <div className="min-h-screen">
@@ -161,7 +215,10 @@ function CoursesHome() {
             </ul>
           </section>
         )}
+
+        {orgQuery.data && <OrgApprovals organization={orgQuery.data} />}
       </main>
+
 
       <NewCourseDialog
         open={open}

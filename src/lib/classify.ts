@@ -101,6 +101,32 @@ const SPAM_PATTERNS = [
   /(https?:\/\/|www\.)/i,
 ];
 
+/**
+ * Social small talk. These *look* like questions ("how are you?", "all good?")
+ * but they are never about the lesson, so they must land in Off-topic instead
+ * of the topic/question board.
+ */
+const SMALLTALK_PATTERNS = [
+  /^(so\s+)?(what'?s|whats|wat)\s*(up|good|going on)\b/i,
+  /^sup\b/i,
+  /^how\s*(are|r|is|'?s)\s*(you|u|ya|everyone|everybody|it|things|life|your day)\b/i,
+  /^how\s*(do\s*you\s*do|have\s*you\s*been|was\s*your\s*(day|weekend))\b/i,
+  /^(you|u)\s*(ok|okay|good|fine|alright)\b/i,
+  /^(all|everything)\s*(good|ok|okay|fine|well)\b/i,
+  /^(hope|hows|how'?s)\s+(you|everyone|everybody|the day)\b/i,
+  /^(kya|kia)\s*(haal|hal|scene|chal\s*raha)\b/i,
+  /^(kaise|kese|kaisay|kesay)\s*(ho|hain|hn)\b/i,
+  /^(sab|sb)\s*(theek|thik|acha|badhiya)\b/i,
+  /^(good\s*(to\s*see|day)|nice\s*to\s*meet)\b/i,
+  /^(thanks|thank\s*you|shukriya|thx|ty)\b/i,
+];
+
+/** True for greetings and social chatter that belong in Off-topic. */
+export function isSmallTalk(text: string): boolean {
+  const flat = text.trim().toLowerCase().replace(/[!?.]+$/g, "");
+  return flat.length <= 60 && SMALLTALK_PATTERNS.some((pattern) => pattern.test(flat));
+}
+
 /** Heuristic used when the AI is unavailable — never blocks the student. */
 export function localClassify(body: string): { category: Category; confidence: number } {
   const text = body.trim();
@@ -109,9 +135,13 @@ export function localClassify(body: string): { category: Category; confidence: n
   if (SPAM_PATTERNS.some((pattern) => pattern.test(text))) {
     return { category: "spam", confidence: 0.8 };
   }
+  if (isSmallTalk(text)) {
+    return { category: "general", confidence: 0.8 };
+  }
   if (TECH_WORDS.some((word) => new RegExp(`\\b${word}`).test(flat))) {
     return { category: "technical", confidence: 0.7 };
   }
+
   if (
     text.includes("?") ||
     /\b(what|why|how|when|explain|samjh|samjha|sawal|dobara|question|q\d)\b/i.test(flat)

@@ -1,14 +1,19 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Compass, Loader2 } from "lucide-react";
+import { Building2, Check, Compass, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { searchOrganizations, type Organization } from "@/lib/org";
+
+type Role = "teacher" | "student" | "owner";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
-    role: search["role"] === "student" ? ("student" as const) : ("teacher" as const),
+    role: (["student", "owner"].includes(search["role"] as string)
+      ? (search["role"] as Role)
+      : "teacher") as Role,
   }),
   head: () => ({
     meta: [
@@ -16,12 +21,12 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Sign in to Course Compass. Teachers run live sessions and see merged classroom intent; students enrol with a course code and chat during class.",
+          "Sign in to Course Compass. Organizations approve their teachers, teachers run live sessions, and students enrol with a course code.",
       },
       { property: "og:title", content: "Sign in — Course Compass" },
       {
         property: "og:description",
-        content: "One account for teachers and students of very large live classes.",
+        content: "One account for organizations, teachers and students of very large live classes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -34,11 +39,18 @@ function AuthPage() {
   const navigate = useNavigate();
   const { role } = Route.useSearch();
   const isStudent = role === "student";
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const isOwner = role === "owner";
+  const [mode, setMode] = useState<"signin" | "signup">(isOwner ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [orgQuery, setOrgQuery] = useState("");
+  const [orgs, setOrgs] = useState<Organization[]>([]);
+  const [org, setOrg] = useState<Organization | null>(null);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+
+  const needsOrgPicker = role === "teacher" && mode === "signup";
 
   useEffect(() => {
     const go = () => navigate({ to: isStudent ? "/student" : "/courses", replace: true });
@@ -51,8 +63,32 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, isStudent]);
 
+  useEffect(() => {
+    if (!needsOrgPicker) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      searchOrganizations(orgQuery)
+        .then((rows) => {
+          if (!cancelled) setOrgs(rows);
+        })
+        .catch(() => undefined);
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [orgQuery, needsOrgPicker]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (needsOrgPicker && !org) {
+      toast.error("Pick the organization you belong to");
+      return;
+    }
+    if (isOwner && mode === "signup" && !orgName.trim()) {
+      toast.error("Give your organization a name");
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -61,7 +97,11 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { role: isStudent ? "student" : "teacher" },
+            data: {
+              role,
+              ...(isOwner ? { organization_name: orgName.trim() } : {}),
+              ...(org ? { organization_id: org.id } : {}),
+            },
           },
         });
         if (error) throw error;
@@ -89,6 +129,26 @@ function AuthPage() {
     }
   }
 
+  const heading =
+    mode === "signin"
+      ? "Welcome back"
+      : isStudent
+        ? "Create your student account"
+        : isOwner
+          ? "Register your organization"
+          : "Create your teacher account";
+
+  const sub =
+    mode === "signin"
+      ? isStudent
+        ? "Sign in to reach your classes."
+        : "Sign in to open your courses."
+      : isStudent
+        ? "Sign in once — then enrol with your teacher's course code."
+        : isOwner
+          ? "You will own the organization and approve every teacher who joins it."
+          : "Pick your school, college or academy — its owner approves your account.";
+
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       <section className="hidden flex-col justify-between bg-sidebar p-12 text-sidebar-foreground lg:flex">
@@ -110,33 +170,21 @@ function AuthPage() {
 
       <section className="flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-sm">
-          <h2 className="font-display text-2xl font-semibold">
-            {mode === "signin"
-              ? "Welcome back"
-              : isStudent
-                ? "Create your student account"
-                : "Create your teacher account"}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin"
-              ? isStudent
-                ? "Sign in to reach your classes."
-                : "Sign in to open your courses."
-              : isStudent
-                ? "Sign in once — then enrol with your teacher's course code."
-                : "We'll set up a sample course so you can explore right away."}
-          </p>
+          <h2 className="font-display text-2xl font-semibold">{heading}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
 
-          <button
-            onClick={handleGoogle}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
-          >
-            Continue with Google
-          </button>
+          {mode === "signin" && (
+            <button
+              onClick={handleGoogle}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
+            >
+              Continue with Google
+            </button>
+          )}
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            or use email
+            {mode === "signin" ? "or use email" : "use email"}
             <span className="h-px flex-1 bg-border" />
           </div>
 
@@ -144,9 +192,79 @@ function AuthPage() {
             <p className="rounded-lg border border-border bg-secondary p-4 text-sm">
               Confirmation email sent to <strong>{email}</strong>. Click the link to finish
               setting up your account.
+              {needsOrgPicker && " Your organization owner then approves you."}
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
+              {isOwner && mode === "signup" && (
+                <div>
+                  <label htmlFor="orgName" className="text-xs font-medium text-muted-foreground">
+                    Organization name
+                  </label>
+                  <input
+                    id="orgName"
+                    required
+                    value={orgName}
+                    onChange={(e) => setOrgName(e.target.value)}
+                    placeholder="Beaconhouse College, Lahore"
+                    className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+              )}
+
+              {needsOrgPicker && (
+                <div>
+                  <label htmlFor="orgSearch" className="text-xs font-medium text-muted-foreground">
+                    Your organization
+                  </label>
+                  {org ? (
+                    <div className="mt-1 flex items-center gap-2 rounded-lg border border-input bg-secondary px-3 py-2.5 text-sm">
+                      <Building2 className="size-4 shrink-0 text-accent" />
+                      <span className="min-w-0 flex-1 truncate">{org.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setOrg(null)}
+                        className="text-xs font-medium underline underline-offset-4"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mt-1 flex items-center gap-2 rounded-lg border border-input bg-card px-3 py-2.5">
+                        <Search className="size-4 shrink-0 text-muted-foreground" />
+                        <input
+                          id="orgSearch"
+                          value={orgQuery}
+                          onChange={(e) => setOrgQuery(e.target.value)}
+                          placeholder="Search schools, colleges, academies"
+                          className="w-full bg-transparent text-sm outline-none"
+                        />
+                      </div>
+                      <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+                        {orgs.length === 0 && (
+                          <li className="px-1 py-2 text-xs text-muted-foreground">
+                            No organizations found. Ask your admin to register one.
+                          </li>
+                        )}
+                        {orgs.map((item) => (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => setOrg(item)}
+                              className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-secondary"
+                            >
+                              <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
+                              <span className="truncate">{item.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
                   Email
@@ -180,7 +298,7 @@ function AuthPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {busy && <Loader2 className="size-4 animate-spin" />}
-                {mode === "signin" ? "Sign in" : "Create account"}
+                {mode === "signin" ? "Sign in" : isOwner ? "Register organization" : "Create account"}
               </button>
             </form>
           )}
@@ -197,6 +315,35 @@ function AuthPage() {
               {mode === "signin" ? "Create an account" : "Sign in"}
             </button>
           </p>
+
+          {!isStudent && (
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+              <Check className="size-3.5" />
+              {isOwner ? (
+                <>
+                  Joining an existing school?{" "}
+                  <Link
+                    to="/auth"
+                    search={{ role: "teacher" as const }}
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
+                    Sign up as a teacher
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Running the school?{" "}
+                  <Link
+                    to="/auth"
+                    search={{ role: "owner" as const }}
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
+                    Register an organization
+                  </Link>
+                </>
+              )}
+            </p>
+          )}
         </div>
       </section>
     </main>
