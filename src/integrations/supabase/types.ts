@@ -1,999 +1,1011 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15";
-  };
+    PostgrestVersion: "14.15"
+  }
   public: {
     Tables: {
       activity_logs: {
         Row: {
-          confidence: number | null;
-          created_at: string;
-          detail: Json;
-          id: string;
-          kind: string;
-          organization_id: string | null;
-          session_id: string | null;
-          teacher_id: string | null;
-        };
+          confidence: number | null
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          organization_id: string | null
+          session_id: string | null
+          teacher_id: string | null
+        }
         Insert: {
-          confidence?: number | null;
-          created_at?: string;
-          detail?: Json;
-          id?: string;
-          kind: string;
-          organization_id?: string | null;
-          session_id?: string | null;
-          teacher_id?: string | null;
-        };
+          confidence?: number | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind: string
+          organization_id?: string | null
+          session_id?: string | null
+          teacher_id?: string | null
+        }
         Update: {
-          confidence?: number | null;
-          created_at?: string;
-          detail?: Json;
-          id?: string;
-          kind?: string;
-          organization_id?: string | null;
-          session_id?: string | null;
-          teacher_id?: string | null;
-        };
+          confidence?: number | null
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          organization_id?: string | null
+          session_id?: string | null
+          teacher_id?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "activity_logs_organization_id_fkey";
-            columns: ["organization_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
+            foreignKeyName: "activity_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       classroom_settings: {
         Row: {
-          allow_teacher_override: boolean;
-          archive_minutes: number;
-          audio_detect_pct: number;
-          cooldown_ms: number;
-          created_at: string;
-          followup_seconds: number;
-          id: string;
-          organization_id: string | null;
-          question_confirm_pct: number;
-          resolve_pct: number;
-          spam_sensitivity: number;
-          teacher_id: string | null;
-          updated_at: string;
-        };
+          allow_teacher_override: boolean
+          archive_minutes: number
+          audio_detect_pct: number
+          cooldown_ms: number
+          created_at: string
+          followup_seconds: number
+          id: string
+          organization_id: string | null
+          question_confirm_pct: number
+          resolve_pct: number
+          spam_sensitivity: number
+          teacher_id: string | null
+          updated_at: string
+        }
         Insert: {
-          allow_teacher_override?: boolean;
-          archive_minutes?: number;
-          audio_detect_pct?: number;
-          cooldown_ms?: number;
-          created_at?: string;
-          followup_seconds?: number;
-          id?: string;
-          organization_id?: string | null;
-          question_confirm_pct?: number;
-          resolve_pct?: number;
-          spam_sensitivity?: number;
-          teacher_id?: string | null;
-          updated_at?: string;
-        };
+          allow_teacher_override?: boolean
+          archive_minutes?: number
+          audio_detect_pct?: number
+          cooldown_ms?: number
+          created_at?: string
+          followup_seconds?: number
+          id?: string
+          organization_id?: string | null
+          question_confirm_pct?: number
+          resolve_pct?: number
+          spam_sensitivity?: number
+          teacher_id?: string | null
+          updated_at?: string
+        }
         Update: {
-          allow_teacher_override?: boolean;
-          archive_minutes?: number;
-          audio_detect_pct?: number;
-          cooldown_ms?: number;
-          created_at?: string;
-          followup_seconds?: number;
-          id?: string;
-          organization_id?: string | null;
-          question_confirm_pct?: number;
-          resolve_pct?: number;
-          spam_sensitivity?: number;
-          teacher_id?: string | null;
-          updated_at?: string;
-        };
+          allow_teacher_override?: boolean
+          archive_minutes?: number
+          audio_detect_pct?: number
+          cooldown_ms?: number
+          created_at?: string
+          followup_seconds?: number
+          id?: string
+          organization_id?: string | null
+          question_confirm_pct?: number
+          resolve_pct?: number
+          spam_sensitivity?: number
+          teacher_id?: string | null
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "classroom_settings_organization_id_fkey";
-            columns: ["organization_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
+            foreignKeyName: "classroom_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       courses: {
         Row: {
-          accent: string;
-          archived_at: string | null;
-          created_at: string;
-          id: string;
-          is_crash: boolean;
-          join_code: string;
-          status: string;
-          teacher_id: string;
-          term: string | null;
-          title: string;
-        };
+          accent: string
+          archived_at: string | null
+          created_at: string
+          id: string
+          is_crash: boolean
+          join_code: string
+          status: string
+          teacher_id: string
+          term: string | null
+          title: string
+        }
         Insert: {
-          accent?: string;
-          archived_at?: string | null;
-          created_at?: string;
-          id?: string;
-          is_crash?: boolean;
-          join_code?: string;
-          status?: string;
-          teacher_id: string;
-          term?: string | null;
-          title: string;
-        };
+          accent?: string
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          is_crash?: boolean
+          join_code?: string
+          status?: string
+          teacher_id: string
+          term?: string | null
+          title: string
+        }
         Update: {
-          accent?: string;
-          archived_at?: string | null;
-          created_at?: string;
-          id?: string;
-          is_crash?: boolean;
-          join_code?: string;
-          status?: string;
-          teacher_id?: string;
-          term?: string | null;
-          title?: string;
-        };
-        Relationships: [];
-      };
+          accent?: string
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          is_crash?: boolean
+          join_code?: string
+          status?: string
+          teacher_id?: string
+          term?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
-          course_id: string;
-          created_at: string;
-          id: string;
-          status: string;
-          student_email: string | null;
-          student_label: string;
-          student_phone: string | null;
-          student_user_id: string | null;
-          teacher_id: string;
-          updated_at: string;
-        };
+          course_id: string
+          created_at: string
+          id: string
+          status: string
+          student_email: string | null
+          student_label: string
+          student_phone: string | null
+          student_user_id: string | null
+          teacher_id: string
+          updated_at: string
+        }
         Insert: {
-          course_id: string;
-          created_at?: string;
-          id?: string;
-          status?: string;
-          student_email?: string | null;
-          student_label: string;
-          student_phone?: string | null;
-          student_user_id?: string | null;
-          teacher_id: string;
-          updated_at?: string;
-        };
+          course_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_email?: string | null
+          student_label: string
+          student_phone?: string | null
+          student_user_id?: string | null
+          teacher_id: string
+          updated_at?: string
+        }
         Update: {
-          course_id?: string;
-          created_at?: string;
-          id?: string;
-          status?: string;
-          student_email?: string | null;
-          student_label?: string;
-          student_phone?: string | null;
-          student_user_id?: string | null;
-          teacher_id?: string;
-          updated_at?: string;
-        };
+          course_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          student_email?: string | null
+          student_label?: string
+          student_phone?: string | null
+          student_user_id?: string | null
+          teacher_id?: string
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "enrollments_course_id_fkey";
-            columns: ["course_id"];
-            isOneToOne: false;
-            referencedRelation: "courses";
-            referencedColumns: ["id"];
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       messages: {
         Row: {
-          ai_failed: boolean;
-          body: string;
-          category: string;
-          confidence: number;
-          course_id: string | null;
-          created_at: string;
-          id: string;
-          is_teacher: boolean;
-          message_type: string;
-          sender_label: string;
-          session_id: string;
-          student_id: string | null;
-          teacher_id: string | null;
-          thread_id: string | null;
-        };
+          ai_failed: boolean
+          body: string
+          category: string
+          confidence: number
+          course_id: string | null
+          created_at: string
+          id: string
+          is_teacher: boolean
+          message_type: string
+          sender_label: string
+          session_id: string
+          student_id: string | null
+          teacher_id: string | null
+          thread_id: string | null
+        }
         Insert: {
-          ai_failed?: boolean;
-          body: string;
-          category?: string;
-          confidence?: number;
-          course_id?: string | null;
-          created_at?: string;
-          id?: string;
-          is_teacher?: boolean;
-          message_type?: string;
-          sender_label: string;
-          session_id: string;
-          student_id?: string | null;
-          teacher_id?: string | null;
-          thread_id?: string | null;
-        };
+          ai_failed?: boolean
+          body: string
+          category?: string
+          confidence?: number
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_teacher?: boolean
+          message_type?: string
+          sender_label: string
+          session_id: string
+          student_id?: string | null
+          teacher_id?: string | null
+          thread_id?: string | null
+        }
         Update: {
-          ai_failed?: boolean;
-          body?: string;
-          category?: string;
-          confidence?: number;
-          course_id?: string | null;
-          created_at?: string;
-          id?: string;
-          is_teacher?: boolean;
-          message_type?: string;
-          sender_label?: string;
-          session_id?: string;
-          student_id?: string | null;
-          teacher_id?: string | null;
-          thread_id?: string | null;
-        };
+          ai_failed?: boolean
+          body?: string
+          category?: string
+          confidence?: number
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_teacher?: boolean
+          message_type?: string
+          sender_label?: string
+          session_id?: string
+          student_id?: string | null
+          teacher_id?: string | null
+          thread_id?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "messages_course_id_fkey";
-            columns: ["course_id"];
-            isOneToOne: false;
-            referencedRelation: "courses";
-            referencedColumns: ["id"];
+            foreignKeyName: "messages_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "messages_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "messages_thread_id_fkey";
-            columns: ["thread_id"];
-            isOneToOne: false;
-            referencedRelation: "threads";
-            referencedColumns: ["id"];
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       org_approval_events: {
         Row: {
-          action: string;
-          actor_id: string | null;
-          created_at: string;
-          id: string;
-          organization_id: string;
-          teacher_email: string | null;
-          teacher_id: string;
-          teacher_name: string | null;
-        };
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          teacher_email: string | null
+          teacher_id: string
+          teacher_name: string | null
+        }
         Insert: {
-          action: string;
-          actor_id?: string | null;
-          created_at?: string;
-          id?: string;
-          organization_id: string;
-          teacher_email?: string | null;
-          teacher_id: string;
-          teacher_name?: string | null;
-        };
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          teacher_email?: string | null
+          teacher_id: string
+          teacher_name?: string | null
+        }
         Update: {
-          action?: string;
-          actor_id?: string | null;
-          created_at?: string;
-          id?: string;
-          organization_id?: string;
-          teacher_email?: string | null;
-          teacher_id?: string;
-          teacher_name?: string | null;
-        };
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          teacher_email?: string | null
+          teacher_id?: string
+          teacher_name?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "org_approval_events_organization_id_fkey";
-            columns: ["organization_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
+            foreignKeyName: "org_approval_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       organizations: {
         Row: {
-          created_at: string;
-          id: string;
-          name: string;
-          owner_id: string;
-        };
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          name: string;
-          owner_id: string;
-        };
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          name?: string;
-          owner_id?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       poll_responses: {
         Row: {
-          answer: string;
-          created_at: string;
-          id: string;
-          poll_id: string;
-          session_id: string;
-          student_label: string;
-        };
+          answer: string
+          created_at: string
+          id: string
+          poll_id: string
+          session_id: string
+          student_label: string
+        }
         Insert: {
-          answer: string;
-          created_at?: string;
-          id?: string;
-          poll_id: string;
-          session_id: string;
-          student_label: string;
-        };
+          answer: string
+          created_at?: string
+          id?: string
+          poll_id: string
+          session_id: string
+          student_label: string
+        }
         Update: {
-          answer?: string;
-          created_at?: string;
-          id?: string;
-          poll_id?: string;
-          session_id?: string;
-          student_label?: string;
-        };
+          answer?: string
+          created_at?: string
+          id?: string
+          poll_id?: string
+          session_id?: string
+          student_label?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "poll_responses_poll_id_fkey";
-            columns: ["poll_id"];
-            isOneToOne: false;
-            referencedRelation: "polls";
-            referencedColumns: ["id"];
+            foreignKeyName: "poll_responses_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "poll_responses_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "poll_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       polls: {
         Row: {
-          created_at: string;
-          id: string;
-          kind: string;
-          prompt: string;
-          session_id: string;
-          status: string;
-          thread_id: string | null;
-        };
+          created_at: string
+          id: string
+          kind: string
+          prompt: string
+          session_id: string
+          status: string
+          thread_id: string | null
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          kind: string;
-          prompt: string;
-          session_id: string;
-          status?: string;
-          thread_id?: string | null;
-        };
+          created_at?: string
+          id?: string
+          kind: string
+          prompt: string
+          session_id: string
+          status?: string
+          thread_id?: string | null
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          kind?: string;
-          prompt?: string;
-          session_id?: string;
-          status?: string;
-          thread_id?: string | null;
-        };
+          created_at?: string
+          id?: string
+          kind?: string
+          prompt?: string
+          session_id?: string
+          status?: string
+          thread_id?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "polls_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "polls_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "polls_thread_id_fkey";
-            columns: ["thread_id"];
-            isOneToOne: false;
-            referencedRelation: "threads";
-            referencedColumns: ["id"];
+            foreignKeyName: "polls_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       profiles: {
         Row: {
-          approval_status: string;
-          created_at: string;
-          display_name: string | null;
-          email: string | null;
-          id: string;
-          organization_id: string | null;
-          role: string;
-        };
+          approval_status: string
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          organization_id: string | null
+          role: string
+        }
         Insert: {
-          approval_status?: string;
-          created_at?: string;
-          display_name?: string | null;
-          email?: string | null;
-          id: string;
-          organization_id?: string | null;
-          role?: string;
-        };
+          approval_status?: string
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          organization_id?: string | null
+          role?: string
+        }
         Update: {
-          approval_status?: string;
-          created_at?: string;
-          display_name?: string | null;
-          email?: string | null;
-          id?: string;
-          organization_id?: string | null;
-          role?: string;
-        };
+          approval_status?: string
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          organization_id?: string | null
+          role?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "profiles_organization_id_fkey";
-            columns: ["organization_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       sales_leads: {
         Row: {
-          consent: boolean;
-          country: string;
-          created_at: string;
-          email: string;
-          id: string;
-          message: string | null;
-          name: string;
-          organization: string;
-          phone: string;
-          plan: string;
-          role: string;
-          status: string;
-          students: number | null;
-          teachers: number | null;
-          updated_at: string;
-        };
+          consent: boolean
+          country: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          organization: string
+          phone: string
+          plan: string
+          role: string
+          status: string
+          students: number | null
+          teachers: number | null
+          updated_at: string
+        }
         Insert: {
-          consent?: boolean;
-          country: string;
-          created_at?: string;
-          email: string;
-          id?: string;
-          message?: string | null;
-          name: string;
-          organization: string;
-          phone: string;
-          plan?: string;
-          role: string;
-          status?: string;
-          students?: number | null;
-          teachers?: number | null;
-          updated_at?: string;
-        };
+          consent?: boolean
+          country: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          organization: string
+          phone: string
+          plan?: string
+          role: string
+          status?: string
+          students?: number | null
+          teachers?: number | null
+          updated_at?: string
+        }
         Update: {
-          consent?: boolean;
-          country?: string;
-          created_at?: string;
-          email?: string;
-          id?: string;
-          message?: string | null;
-          name?: string;
-          organization?: string;
-          phone?: string;
-          plan?: string;
-          role?: string;
-          status?: string;
-          students?: number | null;
-          teachers?: number | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          consent?: boolean
+          country?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          organization?: string
+          phone?: string
+          plan?: string
+          role?: string
+          status?: string
+          students?: number | null
+          teachers?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       session_blocks: {
         Row: {
-          created_at: string;
-          id: string;
-          kind: string;
-          session_id: string;
-          student_label: string;
-          teacher_id: string;
-          until: string | null;
-        };
+          created_at: string
+          id: string
+          kind: string
+          session_id: string
+          student_label: string
+          teacher_id: string
+          until: string | null
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          kind?: string;
-          session_id: string;
-          student_label: string;
-          teacher_id: string;
-          until?: string | null;
-        };
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id: string
+          student_label: string
+          teacher_id: string
+          until?: string | null
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          kind?: string;
-          session_id?: string;
-          student_label?: string;
-          teacher_id?: string;
-          until?: string | null;
-        };
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id?: string
+          student_label?: string
+          teacher_id?: string
+          until?: string | null
+        }
         Relationships: [
           {
-            foreignKeyName: "session_blocks_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "session_blocks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       session_reactions: {
         Row: {
-          created_at: string;
-          id: string;
-          kind: string;
-          session_id: string;
-          student_label: string;
-          updated_at: string;
-        };
+          created_at: string
+          id: string
+          kind: string
+          session_id: string
+          student_label: string
+          updated_at: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          kind: string;
-          session_id: string;
-          student_label: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          id?: string
+          kind: string
+          session_id: string
+          student_label: string
+          updated_at?: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          kind?: string;
-          session_id?: string;
-          student_label?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          id?: string
+          kind?: string
+          session_id?: string
+          student_label?: string
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "session_reactions_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "session_reactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       sessions: {
         Row: {
-          chat_paused: boolean;
-          course_id: string;
-          ended_at: string | null;
-          id: string;
-          mode: string;
-          pinned_message_id: string | null;
-          quiz_answer_type: string | null;
-          quiz_options: Json;
-          quiz_prompt: string | null;
-          resolve_threshold: number;
-          started_at: string;
-          status: string;
-          teacher_id: string;
-          title: string;
-        };
+          chat_paused: boolean
+          course_id: string
+          ended_at: string | null
+          id: string
+          mode: string
+          pinned_message_id: string | null
+          quiz_answer_type: string | null
+          quiz_options: Json
+          quiz_prompt: string | null
+          resolve_threshold: number
+          started_at: string
+          status: string
+          teacher_id: string
+          title: string
+        }
         Insert: {
-          chat_paused?: boolean;
-          course_id: string;
-          ended_at?: string | null;
-          id?: string;
-          mode?: string;
-          pinned_message_id?: string | null;
-          quiz_answer_type?: string | null;
-          quiz_options?: Json;
-          quiz_prompt?: string | null;
-          resolve_threshold?: number;
-          started_at?: string;
-          status?: string;
-          teacher_id: string;
-          title?: string;
-        };
+          chat_paused?: boolean
+          course_id: string
+          ended_at?: string | null
+          id?: string
+          mode?: string
+          pinned_message_id?: string | null
+          quiz_answer_type?: string | null
+          quiz_options?: Json
+          quiz_prompt?: string | null
+          resolve_threshold?: number
+          started_at?: string
+          status?: string
+          teacher_id: string
+          title?: string
+        }
         Update: {
-          chat_paused?: boolean;
-          course_id?: string;
-          ended_at?: string | null;
-          id?: string;
-          mode?: string;
-          pinned_message_id?: string | null;
-          quiz_answer_type?: string | null;
-          quiz_options?: Json;
-          quiz_prompt?: string | null;
-          resolve_threshold?: number;
-          started_at?: string;
-          status?: string;
-          teacher_id?: string;
-          title?: string;
-        };
+          chat_paused?: boolean
+          course_id?: string
+          ended_at?: string | null
+          id?: string
+          mode?: string
+          pinned_message_id?: string | null
+          quiz_answer_type?: string | null
+          quiz_options?: Json
+          quiz_prompt?: string | null
+          resolve_threshold?: number
+          started_at?: string
+          status?: string
+          teacher_id?: string
+          title?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "sessions_course_id_fkey";
-            columns: ["course_id"];
-            isOneToOne: false;
-            referencedRelation: "courses";
-            referencedColumns: ["id"];
+            foreignKeyName: "sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       thread_feedback: {
         Row: {
-          created_at: string;
-          id: string;
-          session_id: string;
-          state: string;
-          student_label: string;
-          thread_id: string;
-        };
+          created_at: string
+          id: string
+          session_id: string
+          state: string
+          student_label: string
+          thread_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          session_id: string;
-          state?: string;
-          student_label: string;
-          thread_id: string;
-        };
+          created_at?: string
+          id?: string
+          session_id: string
+          state?: string
+          student_label: string
+          thread_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          session_id?: string;
-          state?: string;
-          student_label?: string;
-          thread_id?: string;
-        };
+          created_at?: string
+          id?: string
+          session_id?: string
+          state?: string
+          student_label?: string
+          thread_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "thread_feedback_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "thread_feedback_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "thread_feedback_thread_id_fkey";
-            columns: ["thread_id"];
-            isOneToOne: false;
-            referencedRelation: "threads";
-            referencedColumns: ["id"];
+            foreignKeyName: "thread_feedback_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       thread_participants: {
         Row: {
-          created_at: string;
-          id: string;
-          session_id: string;
-          student_label: string;
-          thread_id: string;
-        };
+          created_at: string
+          id: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          session_id: string;
-          student_label: string;
-          thread_id: string;
-        };
+          created_at?: string
+          id?: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          session_id?: string;
-          student_label?: string;
-          thread_id?: string;
-        };
+          created_at?: string
+          id?: string
+          session_id?: string
+          student_label?: string
+          thread_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "thread_participants_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "thread_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "thread_participants_thread_id_fkey";
-            columns: ["thread_id"];
-            isOneToOne: false;
-            referencedRelation: "threads";
-            referencedColumns: ["id"];
+            foreignKeyName: "thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       thread_votes: {
         Row: {
-          created_at: string;
-          id: string;
-          session_id: string;
-          student_label: string;
-          thread_id: string;
-        };
+          created_at: string
+          id: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          session_id: string;
-          student_label: string;
-          thread_id: string;
-        };
+          created_at?: string
+          id?: string
+          session_id: string
+          student_label: string
+          thread_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          session_id?: string;
-          student_label?: string;
-          thread_id?: string;
-        };
+          created_at?: string
+          id?: string
+          session_id?: string
+          student_label?: string
+          thread_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "thread_votes_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "thread_votes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "thread_votes_thread_id_fkey";
-            columns: ["thread_id"];
-            isOneToOne: false;
-            referencedRelation: "threads";
-            referencedColumns: ["id"];
+            foreignKeyName: "thread_votes_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       threads: {
         Row: {
-          ai_failed: boolean;
-          archived_at: string | null;
-          category: string;
-          course_id: string | null;
-          created_at: string;
-          id: string;
-          last_activity_at: string;
-          session_id: string;
-          status: string;
-          teacher_id: string | null;
-          title: string;
-        };
+          ai_failed: boolean
+          archived_at: string | null
+          category: string
+          course_id: string | null
+          created_at: string
+          id: string
+          last_activity_at: string
+          session_id: string
+          status: string
+          teacher_id: string | null
+          title: string
+        }
         Insert: {
-          ai_failed?: boolean;
-          archived_at?: string | null;
-          category?: string;
-          course_id?: string | null;
-          created_at?: string;
-          id?: string;
-          last_activity_at?: string;
-          session_id: string;
-          status?: string;
-          teacher_id?: string | null;
-          title: string;
-        };
+          ai_failed?: boolean
+          archived_at?: string | null
+          category?: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          session_id: string
+          status?: string
+          teacher_id?: string | null
+          title: string
+        }
         Update: {
-          ai_failed?: boolean;
-          archived_at?: string | null;
-          category?: string;
-          course_id?: string | null;
-          created_at?: string;
-          id?: string;
-          last_activity_at?: string;
-          session_id?: string;
-          status?: string;
-          teacher_id?: string | null;
-          title?: string;
-        };
+          ai_failed?: boolean
+          archived_at?: string | null
+          category?: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string
+          session_id?: string
+          status?: string
+          teacher_id?: string | null
+          title?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "threads_course_id_fkey";
-            columns: ["course_id"];
-            isOneToOne: false;
-            referencedRelation: "courses";
-            referencedColumns: ["id"];
+            foreignKeyName: "threads_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "threads_session_id_fkey";
-            columns: ["session_id"];
-            isOneToOne: false;
-            referencedRelation: "sessions";
-            referencedColumns: ["id"];
+            foreignKeyName: "threads_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       user_roles: {
         Row: {
-          created_at: string;
-          id: string;
-          role: Database["public"]["Enums"]["app_role"];
-          user_id: string;
-        };
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
         Insert: {
-          created_at?: string;
-          id?: string;
-          role: Database["public"]["Enums"]["app_role"];
-          user_id: string;
-        };
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
         Update: {
-          created_at?: string;
-          id?: string;
-          role?: Database["public"]["Enums"]["app_role"];
-          user_id?: string;
-        };
-        Relationships: [];
-      };
-    };
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
     Views: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Functions: {
       can_post: {
-        Args: { _label: string; _session_id: string };
-        Returns: boolean;
-      };
+        Args: { _label: string; _session_id: string }
+        Returns: boolean
+      }
       course_by_code: {
-        Args: { _code: string };
+        Args: { _code: string }
         Returns: {
-          id: string;
-          is_crash: boolean;
-          join_code: string;
-          teacher_id: string;
-          term: string;
-          title: string;
-        }[];
-      };
-      generate_course_code: { Args: never; Returns: string };
+          id: string
+          is_crash: boolean
+          join_code: string
+          teacher_id: string
+          term: string
+          title: string
+        }[]
+      }
+      generate_course_code: { Args: never; Returns: string }
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"];
-          _user_id: string;
-        };
-        Returns: boolean;
-      };
-      in_session: { Args: { _session: string }; Returns: boolean };
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      in_session: { Args: { _session: string }; Returns: boolean }
       is_org_owner: {
-        Args: { _org_id: string; _user_id: string };
-        Returns: boolean;
-      };
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_org_staff: {
-        Args: { _org: string; _user_id: string };
-        Returns: boolean;
-      };
-      is_session_student: { Args: { _session: string }; Returns: boolean };
-      is_session_teacher: { Args: { _session: string }; Returns: boolean };
-    };
+        Args: { _org: string; _user_id: string }
+        Returns: boolean
+      }
+      is_session_student: { Args: { _session: string }; Returns: boolean }
+      is_session_teacher: { Args: { _session: string }; Returns: boolean }
+    }
     Enums: {
-      app_role: "admin";
-    };
+      app_role: "admin"
+    }
     CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
+      [_ in never]: never
+    }
+  }
+}
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R;
+      Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R;
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
       }
       ? R
       : never
-    : never;
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I;
+      Insert: infer I
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I;
+        Insert: infer I
       }
       ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U;
+      Update: infer U
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U;
+        Update: infer U
       }
       ? U
       : never
-    : never;
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never;
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never;
+    : never
 
 export const Constants = {
   public: {
@@ -1001,4 +1013,4 @@ export const Constants = {
       app_role: ["admin"],
     },
   },
-} as const;
+} as const
