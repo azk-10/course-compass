@@ -140,7 +140,7 @@ function PlanField({
 }: {
   label: string;
   value: number;
-  money?: boolean;
+  money?: boolean | undefined;
   onCommit: (value: number) => void;
 }) {
   const display = money ? String(value / 100) : String(value);
