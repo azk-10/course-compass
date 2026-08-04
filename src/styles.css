@@ -248,6 +248,22 @@
   }
 }
 
+/* Opt-in reduced motion (in-app toggle), mirrors the OS-level preference. */
+[data-reduced-motion="true"] *,
+[data-reduced-motion="true"] *::before,
+[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+[data-reduced-motion="true"] button:active,
+[data-reduced-motion="true"] [role="button"]:active {
+  transform: none !important;
+}
+
+
 @utility press-glow {
   &:not(:disabled):hover {
     box-shadow: var(--shadow-lift);

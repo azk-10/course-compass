@@ -87,8 +87,30 @@ export function ChatTabList({
 }) {
   const unreadFor = useSeenMarks(sessionKey, tab, messages);
 
+  // Arrow keys move between category buttons like a real navigation rail.
+  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    const buttons = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>("button[data-chat-tab]"),
+    );
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (index === -1) return;
+    event.preventDefault();
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? buttons.length - 1
+          : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[next]?.focus();
+  };
+
   return (
-    <nav className={`flex flex-col gap-1 pb-4 ${collapsed ? "px-2" : "px-3"}`}>
+    <nav
+      aria-label="Chat categories"
+      onKeyDown={onKeyDown}
+      className={`flex flex-col gap-1 pb-4 ${collapsed ? "px-2" : "px-3"}`}
+    >
       {CHAT_TABS.map(({ key, label, icon: Icon }) => {
         const count = key === "topics" ? threadCount : unreadFor(key);
         const active = tab === key;
@@ -96,9 +118,11 @@ export function ChatTabList({
         return (
           <button
             key={key}
+            data-chat-tab={key}
             onClick={() => onChange(key)}
             title={collapsed ? `${label} (${count})` : undefined}
-            aria-label={label}
+            aria-label={count > 0 ? `${label}, ${count} unread` : label}
+            aria-current={active ? "page" : undefined}
             className={`relative inline-flex items-center gap-2 overflow-hidden rounded-lg text-sm font-medium transition-all duration-200 active:scale-[0.97] ${
               collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
             } ${
@@ -107,6 +131,7 @@ export function ChatTabList({
                 : "opacity-75 hover:bg-sidebar-accent/50 hover:opacity-100"
             }`}
           >
+
             {active && (
               <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-sidebar-primary" />
             )}

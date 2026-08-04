@@ -27,6 +27,7 @@ import {
   flushIntervalFor,
   pollIntervalFor,
 } from "@/lib/live-transport";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { buildStats } from "@/lib/threads";
 import {
   DEMO_COURSE,
@@ -82,18 +83,30 @@ function DemoPage() {
   const [tab, setTab] = useState<ChatTab>("topics");
   const [compare, setCompare] = useState(false);
   const [dev, setDev] = useState(false);
+  const [reducedMotion, setReducedMotion] = useReducedMotion();
+  const [announcement, setAnnouncement] = useState("");
+
+  const mainRef = useRef<HTMLElement>(null);
+  const startRef = useRef<HTMLButtonElement>(null);
+  const lastAnnounced = useRef(0);
 
   const sync = useCallback(() => setView(clone(stateRef.current)), []);
 
+  const announce = useCallback((message: string) => setAnnouncement(message), []);
+
   // One interval drives the whole simulation; it stops on pause and unmount.
+  // Reduced motion slows the cadence so the feed does not thrash.
   useEffect(() => {
     if (!live || paused) return;
-    const id = window.setInterval(() => {
-      tick(stateRef.current);
-      sync();
-    }, 700);
+    const id = window.setInterval(
+      () => {
+        tick(stateRef.current);
+        sync();
+      },
+      reducedMotion ? 1600 : 700,
+    );
     return () => window.clearInterval(id);
-  }, [live, paused, sync]);
+  }, [live, paused, sync, reducedMotion]);
 
   const stats = useMemo(
     () =>
@@ -111,50 +124,138 @@ function DemoPage() {
     (item) => item.category !== "spam" && item.health !== "settled",
   ).length;
 
-  const runControl = (key: BurstKind | "poll", count: number) => {
-    if (key === "poll") pollBurst(stateRef.current, count);
-    else burst(stateRef.current, key, count);
-    sync();
-  };
+  // Periodic, throttled screen-reader summary of the live class.
+  useEffect(() => {
+    if (!live || paused) return;
+    const now = Date.now();
+    if (now - lastAnnounced.current < 15000) return;
+    lastAnnounced.current = now;
+    setAnnouncement(
+      `${view.studentsOnline} students online, ${view.totalMessages} messages, ${unresolved} open topics.`,
+    );
+  }, [view.studentsOnline, view.totalMessages, unresolved, live, paused]);
 
-  const reset = () => {
+  const runControl = useCallback(
+    (key: BurstKind | "poll", count: number, label: string) => {
+      if (key === "poll") pollBurst(stateRef.current, count);
+      else burst(stateRef.current, key, count);
+      sync();
+      announce(`Generated ${count} ${label.toLowerCase()} messages.`);
+    },
+    [sync, announce],
+  );
+
+  const reset = useCallback(() => {
     stateRef.current = createDemoState(view.targetStudents);
     setLive(false);
     setPaused(false);
     sync();
-  };
+    announce("Demo reset. Session stopped.");
+    window.requestAnimationFrame(() => startRef.current?.focus());
+  }, [view.targetStudents, sync, announce]);
+
+  const togglePause = useCallback(() => {
+    setPaused((value) => {
+      announce(value ? "Simulation resumed." : "Simulation paused.");
+      return !value;
+    });
+  }, [announce]);
 
   const setSize = (size: number) => {
     stateRef.current.targetStudents = size;
     sync();
   };
 
+  const startSession = useCallback(() => {
+    setLive(true);
+    setPaused(false);
+    announce("Live session started. Simulated students are joining.");
+    window.requestAnimationFrame(() => mainRef.current?.focus());
+  }, [announce]);
+
+  // Keyboard shortcuts, ignored while typing in a field.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      // Only text-entry fields swallow shortcuts; checkboxes and sliders don't.
+      const field = target?.closest<HTMLElement>(
+        "input, textarea, select, [contenteditable='true']",
+      );
+      if (field && !(field instanceof HTMLInputElement && /checkbox|radio|range/.test(field.type)))
+        return;
+      const key = event.key.toLowerCase();
+      if (!live) {
+        if (key === "s") {
+          event.preventDefault();
+          startSession();
+        }
+        return;
+      }
+      if (key === "p") {
+        event.preventDefault();
+        togglePause();
+      } else if (key === "r") {
+        event.preventDefault();
+        reset();
+      } else if (key === "c") {
+        event.preventDefault();
+        setCompare((value) => {
+          announce(value ? "Showing AI classroom view." : "Showing Zoom comparison view.");
+          return !value;
+        });
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [live, startSession, togglePause, reset, announce]);
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <a
+        href="#demo-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-accent focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-accent-foreground"
+      >
+        Skip to demo content
+      </a>
+
+      <p aria-live="polite" role="status" className="sr-only">
+        {announcement}
+      </p>
+
       <header className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 sm:px-6">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-4" /> Back
+          <ArrowLeft className="size-4" aria-hidden="true" /> Back
         </Link>
         <span className="flex items-center gap-2 font-display text-sm font-semibold">
-          <Compass className="size-4 text-accent" /> {DEMO_ORG}
+          <Compass className="size-4 text-accent" aria-hidden="true" /> {DEMO_ORG}
         </span>
         <span className="hidden text-sm text-muted-foreground sm:inline">
           {DEMO_TEACHER} · {DEMO_COURSE}
         </span>
         <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
-          <span className="size-2 animate-pulse rounded-full bg-accent" />
+          <span
+            className={`size-2 rounded-full bg-accent ${reducedMotion ? "" : "animate-pulse"}`}
+            aria-hidden="true"
+          />
           {live ? "Live session" : "Not started"}
         </span>
         <span className="inline-flex items-center gap-1.5 text-sm font-semibold tabular-nums">
-          <Users className="size-4 text-muted-foreground" /> {view.studentsOnline}
+          <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">Students online:</span> {view.studentsOnline}
         </span>
       </header>
 
       {!live ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 py-20 text-center">
+        <main
+          id="demo-main"
+          ref={mainRef}
+          tabIndex={-1}
+          className="flex flex-1 flex-col items-center justify-center gap-5 px-6 py-20 text-center outline-none"
+        >
           <h1 className="max-w-2xl font-display text-4xl leading-tight font-semibold">
             The teacher clicks one button. The AI does the rest.
           </h1>
@@ -164,19 +265,22 @@ function DemoPage() {
             pre-recorded.
           </p>
           <button
-            onClick={() => {
-              setLive(true);
-              setPaused(false);
-            }}
+            ref={startRef}
+            onClick={startSession}
             className="rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
           >
             Start Session
           </button>
           <ClassSizeSlider value={view.targetStudents} onChange={setSize} />
-        </div>
+          <MotionToggle value={reducedMotion} onChange={setReducedMotion} />
+          <p className="text-[11px] text-muted-foreground">
+            Keyboard: <kbd>S</kbd> start · <kbd>P</kbd> pause · <kbd>R</kbd> reset · <kbd>C</kbd>{" "}
+            compare
+          </p>
+        </main>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[13rem_minmax(0,1fr)_20rem]">
-          <aside className="border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground lg:border-r lg:border-b-0">
+          <div className="border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground lg:border-r lg:border-b-0">
             <ChatTabList
               messages={view.messages}
               tab={tab}
@@ -184,9 +288,16 @@ function DemoPage() {
               threadCount={unresolved}
               sessionKey="demo"
             />
-          </aside>
+          </div>
 
-          <main className="flex min-h-0 flex-col">
+
+          <main
+            id="demo-main"
+            ref={mainRef}
+            tabIndex={-1}
+            aria-label={compare ? "Zoom versus AI comparison" : "Live classroom feed"}
+            className="flex min-h-0 flex-col outline-none"
+          >
             {compare ? (
               <ComparisonView view={view} />
             ) : tab === "topics" ? (
@@ -196,9 +307,14 @@ function DemoPage() {
             )}
           </main>
 
-          <aside className="min-h-0 space-y-3 overflow-y-auto border-t border-border p-4 lg:border-t-0 lg:border-l">
-            <div className="panel p-4">
-              <h2 className="font-display text-sm font-semibold">Live class</h2>
+          <aside
+            aria-label="Demo controls and live statistics"
+            className="min-h-0 space-y-3 overflow-y-auto border-t border-border p-4 lg:border-t-0 lg:border-l"
+          >
+            <section className="panel p-4" aria-labelledby="demo-live-class">
+              <h2 id="demo-live-class" className="font-display text-sm font-semibold">
+                Live class
+              </h2>
               <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <Stat label="Students" value={view.studentsOnline} />
                 <Stat label="Messages" value={view.totalMessages} />
@@ -209,7 +325,7 @@ function DemoPage() {
               </dl>
               {view.pollResponses.yes + view.pollResponses.no > 0 && (
                 <p className="mt-3 flex items-center gap-2 rounded-lg bg-muted/60 px-2.5 py-2 text-[11px]">
-                  <Wrench className="size-3.5 text-muted-foreground" />
+                  <Wrench className="size-3.5 text-muted-foreground" aria-hidden="true" />
                   “Can you hear the teacher?” —{" "}
                   <span className="font-semibold text-accent">
                     {Math.round(
@@ -220,40 +336,53 @@ function DemoPage() {
                   </span>
                 </p>
               )}
-            </div>
+            </section>
 
-            <div className="panel p-4">
-              <h2 className="font-display text-sm font-semibold">Demo controls</h2>
+            <section className="panel p-4" aria-labelledby="demo-controls">
+              <h2 id="demo-controls" className="font-display text-sm font-semibold">
+                Demo controls
+              </h2>
               <div className="mt-3 grid gap-1.5">
                 {CONTROLS.map(({ key, label, icon: Icon, count }) => (
                   <button
                     key={key}
-                    onClick={() => runControl(key, count)}
+                    onClick={() => runControl(key, count, label)}
+                    aria-label={`Generate ${count} ${label.toLowerCase()} messages`}
                     className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ring-1 ring-border transition-colors hover:bg-muted active:scale-[0.97]"
                   >
-                    <Icon className="size-3.5 text-muted-foreground" /> Generate {label}
+                    <Icon className="size-3.5 text-muted-foreground" aria-hidden="true" /> Generate{" "}
+                    {label}
                   </button>
                 ))}
                 <div className="mt-1 grid grid-cols-2 gap-1.5">
                   <button
-                    onClick={() => setPaused((value) => !value)}
+                    onClick={togglePause}
+                    aria-pressed={paused}
+                    aria-keyshortcuts="p"
                     className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium ring-1 ring-border transition-colors hover:bg-muted active:scale-[0.97]"
                   >
-                    {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+                    {paused ? (
+                      <Play className="size-3.5" aria-hidden="true" />
+                    ) : (
+                      <Pause className="size-3.5" aria-hidden="true" />
+                    )}
                     {paused ? "Resume" : "Pause"}
                   </button>
                   <button
                     onClick={reset}
+                    aria-keyshortcuts="r"
                     className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium ring-1 ring-border transition-colors hover:bg-muted active:scale-[0.97]"
                   >
-                    <RotateCcw className="size-3.5" /> Reset
+                    <RotateCcw className="size-3.5" aria-hidden="true" /> Reset
                   </button>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className="panel p-4">
-              <h2 className="font-display text-sm font-semibold">Stress test</h2>
+            <section className="panel p-4" aria-labelledby="demo-stress">
+              <h2 id="demo-stress" className="font-display text-sm font-semibold">
+                Stress test
+              </h2>
               <ClassSizeSlider value={view.targetStudents} onChange={setSize} />
               <button
                 onClick={() => {
@@ -261,25 +390,28 @@ function DemoPage() {
                   burst(stateRef.current, "answer", Math.round(view.targetStudents / 5));
                   burst(stateRef.current, "spam", Math.round(view.targetStudents / 6));
                   sync();
+                  announce(`Flooded the class with ${view.targetStudents} simultaneous students.`);
                 }}
                 className="mt-3 w-full rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:scale-[0.97]"
               >
                 Flood {view.targetStudents} students at once
               </button>
-            </div>
+            </section>
 
             <LoadPanel audience={view.targetStudents} messageCount={view.messages.length} />
-
 
             <label className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
               <span>Compare with Zoom chat</span>
               <input
                 type="checkbox"
                 checked={compare}
+                aria-keyshortcuts="c"
                 onChange={(event) => setCompare(event.target.checked)}
                 className="size-4 accent-[var(--accent)]"
               />
             </label>
+
+            <MotionToggle value={reducedMotion} onChange={setReducedMotion} inline />
 
             <label className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
               <span>Developer mode</span>
@@ -292,7 +424,11 @@ function DemoPage() {
             </label>
 
             {dev && (
-              <div className="panel space-y-1 p-4 font-mono text-[11px] text-muted-foreground">
+              <div
+                className="panel space-y-1 p-4 font-mono text-[11px] text-muted-foreground"
+                aria-label="Developer metrics"
+                role="group"
+              >
                 <p>merge confidence · {view.metrics.lastConfidence.toFixed(2)}</p>
                 <p>
                   merged / processed · {view.metrics.merged}/{view.metrics.processed}
@@ -309,6 +445,33 @@ function DemoPage() {
     </div>
   );
 }
+
+function MotionToggle({
+  value,
+  onChange,
+  inline,
+}: {
+  value: boolean;
+  onChange: (value: boolean) => void;
+  inline?: boolean;
+}) {
+  return (
+    <label
+      className={`flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs ${
+        inline ? "" : "w-full max-w-sm"
+      }`}
+    >
+      <span>Reduce motion</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(event) => onChange(event.target.checked)}
+        className="size-4 accent-[var(--accent)]"
+      />
+    </label>
+  );
+}
+
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
@@ -334,6 +497,7 @@ function ClassSizeSlider({ value, onChange }: { value: number; onChange: (size: 
         step={1}
         value={index}
         aria-label="Simulated class size"
+        aria-valuetext={`${value} students`}
         onChange={(event) => onChange(SIZES[Number(event.target.value)] ?? 250)}
         className="mt-2 w-full accent-[var(--accent)]"
       />
