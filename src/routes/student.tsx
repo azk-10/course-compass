@@ -102,7 +102,13 @@ function SignedOut() {
 
 /* --------------------------------- enrolment -------------------------------- */
 
-function Enrolment({ me, onEnter }: { me: { id: string; email: string }; onEnter: (id: string) => void }) {
+function Enrolment({
+  me,
+  onEnter,
+}: {
+  me: { id: string; email: string };
+  onEnter: (id: string) => void;
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"courses" | "enrol">("courses");
@@ -145,7 +151,9 @@ function Enrolment({ me, onEnter }: { me: { id: string; email: string }; onEnter
       toast.success("Request sent — your teacher will approve you shortly");
     },
     onError: (error) =>
-      toast.error(error instanceof z.ZodError ? error.issues[0]!.message : "Could not send the request"),
+      toast.error(
+        error instanceof z.ZodError ? error.issues[0]!.message : "Could not send the request",
+      ),
   });
 
   async function lookUp(event: React.FormEvent) {
@@ -275,7 +283,11 @@ function Enrolment({ me, onEnter }: { me: { id: string; email: string }; onEnter
                 disabled={code.trim().length < 4 || checking}
                 className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
-                {checking ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />}
+                {checking ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <KeyRound className="size-4" />
+                )}
                 Find
               </button>
             </div>

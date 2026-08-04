@@ -36,7 +36,6 @@ export function readDevMode(): boolean {
 
 export function logEvent(entry: LogEntry): void {
   if (devMode) {
-    // eslint-disable-next-line no-console
     console.info(`[course-compass] ${entry.kind}`, entry.detail ?? {}, entry.confidence ?? "");
   }
   void supabase

@@ -58,8 +58,6 @@ export async function sendMessage(input: {
       thread_id: input.threadId ?? null,
       ...(input.category ? { category: input.category } : {}),
       ...(input.confidence === undefined ? {} : { confidence: input.confidence }),
-
-
     })
     .select(MESSAGE_FIELDS)
     .single();
@@ -71,7 +69,6 @@ export async function sendMessage(input: {
 export async function setMessageCategory(id: string, category: Category): Promise<void> {
   await supabase.from("messages").update({ category, confidence: 1 }).eq("id", id);
 }
-
 
 /** Distinct students seen in the feed within the last few minutes. */
 export function studentsOnline(messages: ChatMessage[], windowMinutes = 10): string[] {

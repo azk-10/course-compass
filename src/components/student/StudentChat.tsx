@@ -41,7 +41,6 @@ import { DEFAULT_SETTINGS, type ClassroomSettings } from "@/lib/settings";
 import { logEvent } from "@/lib/logs";
 import type { LiveClass } from "@/lib/student-chat";
 
-
 /**
  * Students see a normal chat: sending is instant, classification and merging
  * happen silently behind the scenes. They keep full control of every message.
@@ -249,7 +248,11 @@ export function StudentChat({
         answer: input.answer,
       });
       // "Yes, I have this question too" adds the student without typing.
-      if (input.poll.kind === "question_confirm" && input.poll.thread_id && input.answer === "yes") {
+      if (
+        input.poll.kind === "question_confirm" &&
+        input.poll.thread_id &&
+        input.answer === "yes"
+      ) {
         await joinThread({
           threadId: input.poll.thread_id,
           sessionId: liveClass.id,
@@ -430,10 +433,14 @@ export function StudentChat({
       {!unsure && activePoll && (
         <Popup
           title={
-            activePoll.kind === "audio" ? "Can you hear the teacher?" : "Do you also have this question?"
+            activePoll.kind === "audio"
+              ? "Can you hear the teacher?"
+              : "Do you also have this question?"
           }
           subtitle={activePoll.kind === "audio" ? undefined : activePoll.prompt}
-          icon={activePoll.kind === "audio" ? <Volume2 className="size-4 text-warning" /> : undefined}
+          icon={
+            activePoll.kind === "audio" ? <Volume2 className="size-4 text-warning" /> : undefined
+          }
         >
           <PopupButton
             tone="good"
@@ -683,7 +690,9 @@ function StudentThreadCard({
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-display text-sm font-semibold break-words">{item.thread.title}</h3>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${meta.chip}`}>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold ${meta.chip}`}
+        >
           {meta.label}
         </span>
       </div>

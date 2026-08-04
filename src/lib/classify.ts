@@ -123,7 +123,10 @@ const SMALLTALK_PATTERNS = [
 
 /** True for greetings and social chatter that belong in Off-topic. */
 export function isSmallTalk(text: string): boolean {
-  const flat = text.trim().toLowerCase().replace(/[!?.]+$/g, "");
+  const flat = text
+    .trim()
+    .toLowerCase()
+    .replace(/[!?.]+$/g, "");
   return flat.length <= 60 && SMALLTALK_PATTERNS.some((pattern) => pattern.test(flat));
 }
 
