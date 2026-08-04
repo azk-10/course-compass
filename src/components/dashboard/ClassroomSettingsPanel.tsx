@@ -32,6 +32,7 @@ export function ClassroomSettingsPanel({
   onChange,
   devMode,
   onDevMode,
+  studentsOnline = 0,
 }: {
   settings: ClassroomSettings;
   saving?: boolean;
@@ -41,9 +42,12 @@ export function ClassroomSettingsPanel({
   onChange: (patch: Partial<ClassroomSettings>) => void;
   devMode: boolean;
   onDevMode: (on: boolean) => void;
+  /** Students currently in the live session — turns percentages into head counts. */
+  studentsOnline?: number;
 }) {
   const [draft, setDraft] = useState(settings);
   const [openKey, setOpenKey] = useState<NumericKey>("resolve_pct");
+
 
   useEffect(() => {
     if (!saving) setDraft(settings);
