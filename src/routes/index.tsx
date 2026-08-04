@@ -84,19 +84,31 @@ function Landing() {
             A Zoom chat companion
           </p>
           <h1 className="mt-5 max-w-3xl font-display text-5xl leading-[1.05] font-semibold sm:text-6xl">
-            Keep Zoom for video. Run the conversation here.
+            AI Classroom Chat
           </h1>
+          <p className="mt-4 max-w-xl font-display text-xl text-muted-foreground">
+            The intelligent replacement for Zoom chat.
+          </p>
           <p className="mt-6 max-w-xl text-base/7 text-muted-foreground">
             Built for classes of 100 to 1000+ students. Open the dashboard beside Zoom, start a
             session, and let the feed do the work — almost nothing to click while you teach.
           </p>
-          <Link
-            to="/auth"
-            search={{ role: "teacher" as const }}
-            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-0.5"
-          >
-            Open your dashboard <ArrowRight className="size-4" />
-          </Link>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              to="/demo"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-lift)] transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
+            >
+              Try Live Demo <ArrowRight className="size-4" />
+            </Link>
+            <Link
+              to="/auth"
+              search={{ role: "teacher" as const }}
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold ring-1 ring-border transition-colors hover:bg-muted active:scale-[0.97]"
+            >
+              Open your dashboard
+            </Link>
+          </div>
+
         </section>
 
         <section className="grid gap-4 sm:grid-cols-3">
