@@ -576,3 +576,115 @@ export const setApproval = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+export type AiUsagePoint = {
+  bucket: string;
+  requests: number;
+  fallbacks: number;
+  inputTokens: number;
+  outputTokens: number;
+  credits: number;
+  avgDurationMs: number;
+};
+
+export type AiAnalytics = {
+  points: AiUsagePoint[];
+  totals: {
+    requests: number;
+    fallbacks: number;
+    inputTokens: number;
+    outputTokens: number;
+    credits: number;
+    avgDurationMs: number;
+    successRate: number;
+  };
+  byModel: { model: string; requests: number; credits: number }[];
+};
+
+/** Owner: Gemini requests, tokens and credits over a rolling window. */
+export const getAiAnalytics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ days: z.number().int().min(1).max(90).default(30) }).parse(input ?? {}),
+  )
+  .handler(async ({ data, context }): Promise<AiAnalytics> => {
+    const { assertOwner } = await import("@/lib/owner.server");
+    await assertOwner(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const since = new Date(Date.now() - data.days * 24 * 60 * 60 * 1000).toISOString();
+    const { data: rows, error } = await supabaseAdmin
+      .from("ai_usage_events")
+      .select("created_at, model, status, input_tokens, output_tokens, duration_ms, credits, fallback")
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
+      .limit(20000);
+    if (error) throw new Error(error.message);
+
+    const hourly = data.days <= 2;
+    const buckets = new Map<string, AiUsagePoint & { durationTotal: number }>();
+    const models = new Map<string, { requests: number; credits: number }>();
+    const totals = {
+      requests: 0,
+      fallbacks: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      credits: 0,
+      avgDurationMs: 0,
+      successRate: 0,
+    };
+    let durationTotal = 0;
+
+    for (const row of rows ?? []) {
+      const key = hourly
+        ? `${row.created_at.slice(0, 13)}:00`
+        : (row.created_at as string).slice(0, 10);
+      const point =
+        buckets.get(key) ??
+        {
+          bucket: key,
+          requests: 0,
+          fallbacks: 0,
+          inputTokens: 0,
+          outputTokens: 0,
+          credits: 0,
+          avgDurationMs: 0,
+          durationTotal: 0,
+        };
+      point.requests += 1;
+      point.fallbacks += row.fallback ? 1 : 0;
+      point.inputTokens += row.input_tokens ?? 0;
+      point.outputTokens += row.output_tokens ?? 0;
+      point.credits += Number(row.credits ?? 0);
+      point.durationTotal += row.duration_ms ?? 0;
+      point.avgDurationMs = Math.round(point.durationTotal / point.requests);
+      buckets.set(key, point);
+
+      const model = models.get(row.model) ?? { requests: 0, credits: 0 };
+      model.requests += 1;
+      model.credits += Number(row.credits ?? 0);
+      models.set(row.model, model);
+
+      totals.requests += 1;
+      totals.fallbacks += row.fallback ? 1 : 0;
+      totals.inputTokens += row.input_tokens ?? 0;
+      totals.outputTokens += row.output_tokens ?? 0;
+      totals.credits += Number(row.credits ?? 0);
+      durationTotal += row.duration_ms ?? 0;
+    }
+
+    totals.avgDurationMs = totals.requests ? Math.round(durationTotal / totals.requests) : 0;
+    totals.successRate = totals.requests
+      ? Math.round(((totals.requests - totals.fallbacks) / totals.requests) * 100)
+      : 0;
+
+    return {
+      points: [...buckets.values()]
+        .sort((a, b) => a.bucket.localeCompare(b.bucket))
+        .map(({ durationTotal: _drop, ...point }) => point),
+      totals,
+      byModel: [...models.entries()]
+        .map(([model, m]) => ({ model, ...m }))
+        .sort((a, b) => b.requests - a.requests),
+    };
+  });
