@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { NewCourseDialog } from "@/components/dashboard/NewCourseDialog";
 import { OrgApprovals } from "@/components/dashboard/OrgApprovals";
+import { PendingApproval } from "@/components/org/PendingApproval";
 import { fetchMyProfile, fetchOwnedOrganization } from "@/lib/org";
 import {
   createCourse,
