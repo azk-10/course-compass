@@ -110,3 +110,25 @@ export async function leaveOrganization() {
     .eq("id", id);
   if (error) throw error;
 }
+
+export type ApprovalEvent = {
+  id: string;
+  teacher_id: string;
+  teacher_name: string | null;
+  teacher_email: string | null;
+  action: "requested" | "approved" | "rejected" | "withdrawn";
+  actor_id: string | null;
+  created_at: string;
+};
+
+/** Immutable audit trail of join requests and owner decisions for an organization. */
+export async function fetchApprovalEvents(orgId: string, limit = 100): Promise<ApprovalEvent[]> {
+  const { data, error } = await supabase
+    .from("org_approval_events")
+    .select("id, teacher_id, teacher_name, teacher_email, action, actor_id, created_at")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as ApprovalEvent[];
+}

@@ -270,6 +270,47 @@ export type Database = {
           },
         ]
       }
+      org_approval_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          teacher_email: string | null
+          teacher_id: string
+          teacher_name: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          teacher_email?: string | null
+          teacher_id: string
+          teacher_name?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          teacher_email?: string | null
+          teacher_id?: string
+          teacher_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_approval_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
