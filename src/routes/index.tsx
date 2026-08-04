@@ -50,6 +50,12 @@ function Landing() {
           <span className="truncate">Course Compass</span>
         </span>
         <div className="flex shrink-0 items-center gap-4">
+          <Link
+            to="/demo"
+            className="text-sm font-medium text-accent transition-opacity hover:opacity-80"
+          >
+            Live demo
+          </Link>
           <Link to="/student" className="text-sm text-muted-foreground hover:text-foreground">
             Join as student
           </Link>
@@ -68,6 +74,7 @@ function Landing() {
             Teacher sign in
           </Link>
         </div>
+
 
       </header>
 
