@@ -7,6 +7,7 @@ import {
   Building2,
   CreditCard,
   GraduationCap,
+  Inbox,
   LayoutDashboard,
   Loader2,
   Settings2,
@@ -22,6 +23,7 @@ import { getOwnerStats, listAccounts, resetUsage } from "@/lib/owner.functions";
 import { AccountsTable } from "@/components/owner/AccountsTable";
 import { AiAnalyticsPanel } from "@/components/owner/AiAnalyticsPanel";
 import { BillingTable } from "@/components/owner/BillingTable";
+import { RequestsPanel } from "@/components/owner/RequestsPanel";
 import { SettingsPanel } from "@/components/owner/SettingsPanel";
 
 export const Route = createFileRoute("/_authenticated/owner")({
@@ -40,6 +42,7 @@ const SECTIONS = [
   { id: "teachers", label: "Teachers", icon: GraduationCap },
   { id: "academies", label: "Academies", icon: Building2 },
   { id: "students", label: "Students", icon: Users },
+  { id: "requests", label: "Requests", icon: Inbox },
   { id: "billing", label: "Billing", icon: CreditCard },
   { id: "usage", label: "AI usage", icon: Activity },
   { id: "settings", label: "Settings", icon: Settings2 },
@@ -119,6 +122,7 @@ function OwnerConsole() {
           {section === "teachers" && <AccountsTable kind="teacher" />}
           {section === "academies" && <AccountsTable kind="academy" />}
           {section === "students" && <AccountsTable kind="student" />}
+          {section === "requests" && <RequestsPanel />}
           {section === "billing" && <BillingTable />}
           {section === "usage" && <UsageSection />}
           {section === "settings" && <SettingsPanel />}

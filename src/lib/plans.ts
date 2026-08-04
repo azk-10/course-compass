@@ -1,4 +1,4 @@
-export type PlanId = "free" | "teacher-pro" | "academy" | "enterprise";
+export type PlanId = "teacher-pro" | "academy" | "enterprise";
 
 export type Plan = {
   id: PlanId;
@@ -13,46 +13,32 @@ export type Plan = {
 
 export const PLANS: Plan[] = [
   {
-    id: "free",
-    name: "Free",
-    tagline: "Try the demo",
-    audience: "Perfect for evaluation",
-    price: "Free",
-    cta: "Try Demo",
-    features: [
-      "Full interactive simulation",
-      "Up to 1000 simulated students",
-      "Limited live features",
-      "No card, no sign-up",
-    ],
-  },
-  {
     id: "teacher-pro",
-    name: "Teacher Pro",
+    name: "Teacher Plan",
     tagline: "For independent tutors",
-    audience: "One teacher, unlimited classes",
-    price: "Contact Sales",
-    cta: "Contact Sales",
+    audience: "1 teacher · 1 class · up to 200 students · 5,000 AI messages/mo",
+    price: "$20/mo",
+    cta: "Get Started",
     features: [
       "Live merged discussions",
       "Roman Urdu + English merging",
       "Health checks and polls",
-      "Email support",
+      "Extra class $5/mo · extra 10 students $5/mo",
     ],
     featured: true,
   },
   {
     id: "academy",
-    name: "Academy",
+    name: "Academy Plan",
     tagline: "For coaching centres and academies",
-    audience: "Teams of teachers, shared courses",
-    price: "Book a Demo",
+    audience: "5 teachers · 10 classes · 1,000 students · 15,000 AI messages/mo",
+    price: "$100/mo",
     cta: "Book Demo",
     features: [
       "Organization workspace",
       "Teacher approval workflow",
       "Shared classroom settings",
-      "Onboarding session included",
+      "Extra teacher $10/mo (+30 students) · extra class $5/mo",
     ],
   },
   {
@@ -60,11 +46,11 @@ export const PLANS: Plan[] = [
     name: "Enterprise",
     tagline: "For schools, universities and large organizations",
     audience: "1000+ students per session",
-    price: "Contact Us",
+    price: "Custom",
     cta: "Contact Us",
     features: [
       "Stress-tested for very large cohorts",
-      "Dedicated pilot programme",
+      "Unlimited teachers, classes and AI messages",
       "Security and access review",
       "Priority support",
     ],
