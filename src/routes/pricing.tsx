@@ -39,7 +39,7 @@ function PricingPage() {
           </p>
         </section>
 
-        <section className="mt-12 grid gap-6 lg:grid-cols-4">
+        <section className="mt-12 grid gap-6 lg:grid-cols-3">
           {PLANS.map((plan) => (
             <article
               key={plan.id}
@@ -72,22 +72,13 @@ function PricingPage() {
                 ))}
               </ul>
 
-              {plan.id === "free" ? (
-                <Link
-                  to="/demo"
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-md border border-foreground/20 px-4 py-2.5 text-sm font-bold transition-colors hover:bg-secondary active:scale-[0.97]"
-                >
-                  {plan.cta} <ArrowRight className="size-4" aria-hidden="true" />
-                </Link>
-              ) : (
-                <Link
-                  to="/contact"
-                  search={{ plan: plan.id }}
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
-                >
-                  {plan.cta} <ArrowRight className="size-4" aria-hidden="true" />
-                </Link>
-              )}
+              <Link
+                to="/contact"
+                search={{ plan: plan.id }}
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:scale-[0.97]"
+              >
+                {plan.cta} <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
             </article>
           ))}
         </section>
