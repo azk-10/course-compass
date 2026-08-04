@@ -110,8 +110,10 @@ function DemoPage() {
   );
 
   const unresolved = stats.filter(
-    (item) => item.category !== "spam" && item.health !== "settled",
+    (item) =>
+      item.category !== "spam" && item.category !== "general" && item.health !== "settled",
   ).length;
+
 
   // Periodic, throttled screen-reader summary of the live class.
   useEffect(() => {
@@ -269,7 +271,10 @@ function DemoPage() {
         </main>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[13rem_minmax(0,1fr)_20rem]">
-          <div className="border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground lg:border-r lg:border-b-0">
+          <div className="sticky top-0 z-30 self-start border-b border-sidebar-border bg-sidebar py-3 text-sidebar-foreground shadow-sm lg:h-screen lg:overflow-y-auto lg:border-r lg:border-b-0 lg:shadow-none">
+            <p className="hidden px-3 pb-2 text-[0.62rem] tracking-[0.16em] uppercase opacity-60 lg:block">
+              Class chat
+            </p>
             <ChatTabList
               messages={view.messages}
               tab={tab}
@@ -279,12 +284,13 @@ function DemoPage() {
             />
           </div>
 
+
           <main
             id="demo-main"
             ref={mainRef}
             tabIndex={-1}
             aria-label={compare ? "Zoom versus AI comparison" : "Live classroom feed"}
-            className="flex min-h-0 flex-col outline-none"
+            className="flex min-h-0 flex-col outline-none lg:h-screen"
           >
             {compare ? (
               <ComparisonView view={view} />
@@ -297,8 +303,9 @@ function DemoPage() {
 
           <aside
             aria-label="Demo controls and live statistics"
-            className="min-h-0 space-y-3 overflow-y-auto border-t border-border p-4 lg:border-t-0 lg:border-l"
+            className="min-h-0 space-y-3 border-t border-border p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:overflow-y-auto lg:border-t-0 lg:border-l"
           >
+
             <section className="panel p-4" aria-labelledby="demo-live-class">
               <h2 id="demo-live-class" className="font-display text-sm font-semibold">
                 Live class
