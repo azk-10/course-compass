@@ -5,6 +5,8 @@ import {
   ArrowUp,
   CheckCircle2,
   HelpCircle,
+  MicOff,
+  Pause,
   Send,
   Sparkles,
   Split,
@@ -33,12 +35,12 @@ import {
   type Thread,
   type ThreadStats,
 } from "@/lib/threads";
+import { isBlocked, react, REACTIONS, type ReactionKind } from "@/lib/moderation";
+import { useSessionPulse } from "@/hooks/useSessionPulse";
+import { DEFAULT_SETTINGS, type ClassroomSettings } from "@/lib/settings";
+import { logEvent } from "@/lib/logs";
 import type { LiveClass } from "@/lib/student-chat";
 
-/** No new activity for this long → ask participants if they got it. */
-const FOLLOW_UP_MS = 75_000;
-/** Share of active students discussing a thread before others are asked to join. */
-const CONFIRM_SHARE = 0.6;
 
 /**
  * Students see a normal chat: sending is instant, classification and merging
@@ -47,15 +49,21 @@ const CONFIRM_SHARE = 0.6;
 export function StudentChat({
   liveClass,
   studentName,
+  settings = DEFAULT_SETTINGS,
 }: {
   liveClass: LiveClass;
   studentName: string;
+  settings?: ClassroomSettings;
 }) {
+  const followUpMs = settings.followup_seconds * 1000;
+  const confirmShare = settings.question_confirm_pct / 100;
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [unsure, setUnsure] = useState<ChatMessage | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [myReaction, setMyReaction] = useState<ReactionKind | null>(null);
   const classify = useServerFn(classifyMessage);
 
   const { messages, isLoading, connection } = useLiveMessages(liveClass.id);
@@ -64,9 +72,14 @@ export function StudentChat({
     liveClass.resolve_threshold,
   );
   const { polls, responses } = usePolls(liveClass.id);
+  const { blocks } = useSessionPulse(liveClass.id);
+  const block = isBlocked(blocks, studentName);
+  const removed = block?.kind === "remove";
+  const muted = Boolean(block) && !removed;
+  const locked = liveClass.chat_paused || Boolean(block);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 10_000);
+    const timer = setInterval(() => setNow(Date.now()), 1_000);
     return () => clearInterval(timer);
   }, []);
 
@@ -120,7 +133,7 @@ export function StudentChat({
       (item) =>
         item.category === "question" &&
         item.thread.status === "open" &&
-        item.students + item.upvotes >= Math.ceil(activeStudents * CONFIRM_SHARE) &&
+        item.students + item.upvotes >= Math.ceil(activeStudents * confirmShare) &&
         item.students >= 2,
     );
     if (!popular) return;
@@ -131,7 +144,7 @@ export function StudentChat({
       threadId: popular.thread.id,
       prompt: popular.thread.title,
     });
-  }, [stats, polls, activeStudents, liveClass.id]);
+  }, [stats, polls, activeStudents, confirmShare, liveClass.id]);
 
   const answeredPolls = new Set(
     responses.filter((row) => row.student_label === studentName).map((row) => row.poll_id),
@@ -203,7 +216,14 @@ export function StudentChat({
       }
       refresh();
     },
-    onError: (error: Error) => toast.error(error.message || "Could not send your message"),
+    onError: (error: Error) => {
+      logEvent({
+        kind: "ai_failure",
+        sessionId: liveClass.id,
+        detail: { message: error.message },
+      });
+      toast.error(error.message || "Could not send your message");
+    },
   });
 
   const clarifyMutation = useMutation({
@@ -262,6 +282,13 @@ export function StudentChat({
     onSuccess: refresh,
   });
 
+  const reactionMutation = useMutation({
+    mutationFn: (kind: ReactionKind) =>
+      react({ sessionId: liveClass.id, label: studentName, kind }),
+    onMutate: (kind) => setMyReaction(kind),
+    onError: () => toast.error("Could not send that reaction"),
+  });
+
   const separateMutation = useMutation({
     mutationFn: (message: ChatMessage) =>
       separateMessage({
@@ -285,10 +312,18 @@ export function StudentChat({
     onError: (error: Error) => toast.error(error.message || "Could not separate this message"),
   });
 
+  const cooldownLeft = Math.max(0, cooldownUntil - now);
+
   function submit(event: React.FormEvent) {
     event.preventDefault();
     const body = draft.trim().slice(0, 1000);
     if (!body || postMutation.isPending) return;
+    if (locked) return;
+    if (Date.now() < cooldownUntil) {
+      toast.info("Slow down a moment — one message at a time.");
+      return;
+    }
+    setCooldownUntil(Date.now() + settings.cooldown_ms);
     setDraft("");
     postMutation.mutate(body);
   }
@@ -307,7 +342,7 @@ export function StudentChat({
         item.category === "question" &&
         !myFeedback.has(item.thread.id) &&
         !dismissed.includes(item.thread.id) &&
-        now - new Date(item.thread.last_activity_at).getTime() > FOLLOW_UP_MS,
+        now - new Date(item.thread.last_activity_at).getTime() > followUpMs,
     ) ?? null;
 
   return (
@@ -442,21 +477,62 @@ export function StudentChat({
         </Popup>
       )}
 
+      <div className="flex flex-wrap gap-1.5 border-t border-border px-4 pt-3">
+        {REACTIONS.map((reaction) => {
+          const active = myReaction === reaction.kind;
+          return (
+            <button
+              key={reaction.kind}
+              type="button"
+              disabled={locked}
+              onClick={() => reactionMutation.mutate(reaction.kind)}
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all active:scale-95 disabled:opacity-40 ${
+                active
+                  ? "bg-accent text-accent-foreground"
+                  : "border border-input hover:bg-secondary"
+              }`}
+            >
+              <span aria-hidden>{reaction.emoji}</span>
+              {reaction.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {locked && (
+        <p className="flex items-center gap-2 px-4 pt-3 text-xs font-medium text-warning">
+          {removed ? (
+            <>
+              <MicOff className="size-3.5" /> Your teacher removed you from this session.
+            </>
+          ) : muted ? (
+            <>
+              <MicOff className="size-3.5" /> You are muted for a few minutes.
+            </>
+          ) : (
+            <>
+              <Pause className="size-3.5" /> Your teacher paused the chat.
+            </>
+          )}
+        </p>
+      )}
+
       <form onSubmit={submit} className="flex items-center gap-2 border-t border-border px-4 py-3">
         <input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           maxLength={1000}
-          placeholder="Type a message…"
+          disabled={locked}
+          placeholder={locked ? "Chat unavailable right now" : "Type a message…"}
           className="h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-accent"
         />
         <button
           type="submit"
-          disabled={!draft.trim()}
+          disabled={!draft.trim() || locked || cooldownLeft > 0}
           className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
           <Send className="size-4" />
-          Send
+          {cooldownLeft > 0 ? `${Math.ceil(cooldownLeft / 1000)}s` : "Send"}
         </button>
       </form>
     </div>
