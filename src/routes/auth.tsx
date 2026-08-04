@@ -214,56 +214,36 @@ function AuthPage() {
 
               {needsOrgPicker && (
                 <div>
-                  <label htmlFor="orgSearch" className="text-xs font-medium text-muted-foreground">
+                  <label className="text-xs font-medium text-muted-foreground">
                     Your organization
                   </label>
-                  {org ? (
-                    <div className="mt-1 flex items-center gap-2 rounded-lg border border-input bg-secondary px-3 py-2.5 text-sm">
-                      <Building2 className="size-4 shrink-0 text-accent" />
-                      <span className="min-w-0 flex-1 truncate">{org.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => setOrg(null)}
-                        className="text-xs font-medium underline underline-offset-4"
-                      >
-                        Change
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mt-1 flex items-center gap-2 rounded-lg border border-input bg-card px-3 py-2.5">
-                        <Search className="size-4 shrink-0 text-muted-foreground" />
-                        <input
-                          id="orgSearch"
-                          value={orgQuery}
-                          onChange={(e) => setOrgQuery(e.target.value)}
-                          placeholder="Search schools, colleges, academies"
-                          className="w-full bg-transparent text-sm outline-none"
-                        />
-                      </div>
-                      <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
-                        {orgs.length === 0 && (
-                          <li className="px-1 py-2 text-xs text-muted-foreground">
-                            No organizations found. Ask your admin to register one.
-                          </li>
-                        )}
-                        {orgs.map((item) => (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => setOrg(item)}
-                              className="flex w-full items-center gap-2 rounded-md border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-secondary"
-                            >
-                              <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
-                              <span className="truncate">{item.name}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
+                  <div className="mt-1">
+                    <OrganizationPicker
+                      value={org}
+                      onSelect={(next) => {
+                        setOrg(next);
+                        if (next) setIndependent(false);
+                      }}
+                      independent={independent}
+                      onIndependent={(next) => {
+                        setIndependent(next);
+                        if (next) setOrg(null);
+                      }}
+                    />
+                  </div>
+                  {org && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      The owner of {org.name} reviews your request before your courses unlock.
+                    </p>
+                  )}
+                  {independent && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Independent teachers get full access straight away — no approval needed.
+                    </p>
                   )}
                 </div>
               )}
+
 
               <div>
                 <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
