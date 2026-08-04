@@ -55,6 +55,47 @@ export type Database = {
           },
         ]
       }
+      capacity_events: {
+        Row: {
+          actor_id: string | null
+          amount_cents: number
+          created_at: string
+          id: string
+          kind: string
+          quantity: number
+          subscription_id: string
+          unit_price_cents: number
+        }
+        Insert: {
+          actor_id?: string | null
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          kind: string
+          quantity?: number
+          subscription_id: string
+          unit_price_cents?: number
+        }
+        Update: {
+          actor_id?: string | null
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          quantity?: number
+          subscription_id?: string
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capacity_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classroom_settings: {
         Row: {
           allow_teacher_override: boolean
@@ -197,6 +238,80 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          ai_messages_used: number
+          base_cents: number
+          created_at: string
+          discount_cents: number
+          extra_classes: number
+          extra_classes_cents: number
+          extra_student_blocks: number
+          extra_students_cents: number
+          extra_teachers: number
+          extra_teachers_cents: number
+          id: string
+          notes: string | null
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          status: string
+          subscription_id: string
+          total_cents: number
+          updated_at: string
+        }
+        Insert: {
+          ai_messages_used?: number
+          base_cents?: number
+          created_at?: string
+          discount_cents?: number
+          extra_classes?: number
+          extra_classes_cents?: number
+          extra_student_blocks?: number
+          extra_students_cents?: number
+          extra_teachers?: number
+          extra_teachers_cents?: number
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+          subscription_id: string
+          total_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_messages_used?: number
+          base_cents?: number
+          created_at?: string
+          discount_cents?: number
+          extra_classes?: number
+          extra_classes_cents?: number
+          extra_student_blocks?: number
+          extra_students_cents?: number
+          extra_teachers?: number
+          extra_teachers_cents?: number
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+          subscription_id?: string
+          total_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           ai_failed: boolean
@@ -332,6 +447,66 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          base_price_cents: number
+          created_at: string
+          extra_class_price_cents: number
+          extra_student_block_price_cents: number
+          extra_teacher_price_cents: number
+          id: string
+          included_ai_messages: number
+          included_classes: number
+          included_students: number
+          included_teachers: number
+          is_active: boolean
+          is_custom: boolean
+          kind: string
+          name: string
+          sort_order: number
+          student_block_size: number
+          updated_at: string
+        }
+        Insert: {
+          base_price_cents?: number
+          created_at?: string
+          extra_class_price_cents?: number
+          extra_student_block_price_cents?: number
+          extra_teacher_price_cents?: number
+          id: string
+          included_ai_messages?: number
+          included_classes?: number
+          included_students?: number
+          included_teachers?: number
+          is_active?: boolean
+          is_custom?: boolean
+          kind: string
+          name: string
+          sort_order?: number
+          student_block_size?: number
+          updated_at?: string
+        }
+        Update: {
+          base_price_cents?: number
+          created_at?: string
+          extra_class_price_cents?: number
+          extra_student_block_price_cents?: number
+          extra_teacher_price_cents?: number
+          id?: string
+          included_ai_messages?: number
+          included_classes?: number
+          included_students?: number
+          included_teachers?: number
+          is_active?: boolean
+          is_custom?: boolean
+          kind?: string
+          name?: string
+          sort_order?: number
+          student_block_size?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       poll_responses: {
         Row: {
           answer: string
@@ -421,6 +596,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           approval_status: string
           created_at: string
           display_name: string | null
@@ -430,6 +606,7 @@ export type Database = {
           role: string
         }
         Insert: {
+          account_status?: string
           approval_status?: string
           created_at?: string
           display_name?: string | null
@@ -439,6 +616,7 @@ export type Database = {
           role?: string
         }
         Update: {
+          account_status?: string
           approval_status?: string
           created_at?: string
           display_name?: string | null
@@ -643,6 +821,114 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          ai_messages_allowed: number
+          classes_allowed: number
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          custom_base_price_cents: number | null
+          id: string
+          is_free: boolean
+          notes: string | null
+          organization_id: string | null
+          owner_user_id: string
+          plan_id: string
+          status: string
+          storage_mb_allowed: number
+          students_allowed: number
+          teachers_allowed: number
+          unlimited_ai: boolean
+          unlimited_classes: boolean
+          unlimited_storage: boolean
+          unlimited_students: boolean
+          unlimited_teachers: boolean
+          updated_at: string
+        }
+        Insert: {
+          ai_messages_allowed?: number
+          classes_allowed?: number
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          custom_base_price_cents?: number | null
+          id?: string
+          is_free?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          owner_user_id: string
+          plan_id: string
+          status?: string
+          storage_mb_allowed?: number
+          students_allowed?: number
+          teachers_allowed?: number
+          unlimited_ai?: boolean
+          unlimited_classes?: boolean
+          unlimited_storage?: boolean
+          unlimited_students?: boolean
+          unlimited_teachers?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ai_messages_allowed?: number
+          classes_allowed?: number
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          custom_base_price_cents?: number | null
+          id?: string
+          is_free?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          owner_user_id?: string
+          plan_id?: string
+          status?: string
+          storage_mb_allowed?: number
+          students_allowed?: number
+          teachers_allowed?: number
+          unlimited_ai?: boolean
+          unlimited_classes?: boolean
+          unlimited_storage?: boolean
+          unlimited_students?: boolean
+          unlimited_teachers?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       thread_feedback: {
         Row: {
           created_at: string
@@ -820,6 +1106,47 @@ export type Database = {
           },
         ]
       }
+      usage_counters: {
+        Row: {
+          ai_messages: number
+          created_at: string
+          id: string
+          period_month: string
+          storage_bytes: number
+          subscription_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ai_messages?: number
+          created_at?: string
+          id?: string
+          period_month?: string
+          storage_bytes?: number
+          subscription_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ai_messages?: number
+          created_at?: string
+          id?: string
+          period_month?: string
+          storage_bytes?: number
+          subscription_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_counters_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -878,11 +1205,12 @@ export type Database = {
         Args: { _org: string; _user_id: string }
         Returns: boolean
       }
+      is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_session_student: { Args: { _session: string }; Returns: boolean }
       is_session_teacher: { Args: { _session: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin"
+      app_role: "admin" | "owner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1010,7 +1338,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin"],
+      app_role: ["admin", "owner"],
     },
   },
 } as const

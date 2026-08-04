@@ -4,6 +4,7 @@ import { Building2, Check, Compass, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
 import { OrganizationPicker } from "@/components/org/OrganizationPicker";
 import type { Organization } from "@/lib/org";
@@ -53,15 +54,20 @@ function AuthPage() {
   const needsOrgPicker = role === "teacher" && mode === "signup";
 
   useEffect(() => {
-    const go = () => navigate({ to: isStudent ? "/student" : "/courses", replace: true });
+    const go = async () => {
+      const fallback = isStudent ? "/student" : "/courses";
+      const to = await resolveLandingRoute(fallback);
+      navigate({ to, replace: true });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) go();
+      if (data.session) void go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) go();
+      if (session) void go();
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate, isStudent]);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
