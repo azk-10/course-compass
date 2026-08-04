@@ -238,35 +238,40 @@ function AuthPage() {
 
               {needsOrgPicker && (
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">
-                    Your organization
+                  <label
+                    htmlFor="teacherOrgName"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    Name of your organization
                   </label>
-                  <div className="mt-1">
-                    <OrganizationPicker
-                      value={org}
-                      onSelect={(next) => {
-                        setOrg(next);
-                        if (next) setIndependent(false);
+                  <input
+                    id="teacherOrgName"
+                    value={orgName}
+                    disabled={independent}
+                    onChange={(e) => setOrgName(e.target.value)}
+                    placeholder="Beaconhouse College, Lahore"
+                    className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                  />
+                  <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={independent}
+                      onChange={(e) => {
+                        setIndependent(e.target.checked);
+                        if (e.target.checked) setOrgName("");
                       }}
-                      independent={independent}
-                      onIndependent={(next) => {
-                        setIndependent(next);
-                        if (next) setOrg(null);
-                      }}
+                      className="size-3.5 accent-primary"
                     />
-                  </div>
-                  {org && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      The owner of {org.name} reviews your request before your courses unlock.
-                    </p>
-                  )}
-                  {independent && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Independent teachers get full access straight away — no approval needed.
-                    </p>
-                  )}
+                    I teach independently — no organization
+                  </label>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {independent
+                      ? "Independent teachers get full access straight away — no approval needed."
+                      : "Type your school, college or academy exactly as you call it. Your account is approved before your courses unlock."}
+                  </p>
                 </div>
               )}
+
 
               <div>
                 <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
