@@ -42,7 +42,7 @@ function AuthPage() {
   const { role } = Route.useSearch();
   const isStudent = role === "student";
   const isOwner = role === "owner";
-  const [mode, setMode] = useState<"signin" | "signup">(isOwner ? "signup" : "signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">(isOwner ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -71,6 +71,26 @@ function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "reset") {
+      if (!email.trim()) {
+        toast.error("Enter the email for your account");
+        return;
+      }
+      setBusy(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setSent(true);
+        toast.success("Password reset link sent.");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Could not send the reset link");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     if (needsOrgPicker && !org && !independent) {
       toast.error("Pick your organization, or continue as an independent teacher");
       return;
@@ -121,24 +141,28 @@ function AuthPage() {
   }
 
   const heading =
-    mode === "signin"
-      ? "Welcome back"
-      : isStudent
-        ? "Create your student account"
-        : isOwner
-          ? "Register your organization"
-          : "Create your teacher account";
+    mode === "reset"
+      ? "Reset your password"
+      : mode === "signin"
+        ? "Welcome back"
+        : isStudent
+          ? "Create your student account"
+          : isOwner
+            ? "Register your organization"
+            : "Create your teacher account";
 
   const sub =
-    mode === "signin"
-      ? isStudent
-        ? "Sign in to reach your classes."
-        : "Sign in to open your courses."
-      : isStudent
-        ? "Sign in once — then enrol with your teacher's course code."
-        : isOwner
-          ? "You will own the organization and approve every teacher who joins it."
-          : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
+    mode === "reset"
+      ? "Enter your account email and we'll send you a secure link to set a new password."
+      : mode === "signin"
+        ? isStudent
+          ? "Sign in to reach your classes."
+          : "Sign in to open your courses."
+        : isStudent
+          ? "Sign in once — then enrol with your teacher's course code."
+          : isOwner
+            ? "You will own the organization and approve every teacher who joins it."
+            : "Search for your school, college or academy — its owner approves you. Not part of one? Join as an independent teacher.";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
@@ -175,15 +199,24 @@ function AuthPage() {
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            {mode === "signin" ? "or use email" : "use email"}
+            {mode === "signin" ? "or use email" : mode === "reset" ? "account email" : "use email"}
             <span className="h-px flex-1 bg-border" />
           </div>
 
           {sent ? (
             <p className="rounded-lg border border-border bg-secondary p-4 text-sm">
-              Confirmation email sent to <strong>{email}</strong>. Click the link to finish setting
-              up your account.
-              {org && ` The owner of ${org.name} then approves you.`}
+              {mode === "reset" ? (
+                <>
+                  Password reset link sent to <strong>{email}</strong>. Open it on this device to
+                  choose a new password.
+                </>
+              ) : (
+                <>
+                  Confirmation email sent to <strong>{email}</strong>. Click the link to finish
+                  setting up your account.
+                  {org && ` The owner of ${org.name} then approves you.`}
+                </>
+              )}
             </p>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -248,37 +281,57 @@ function AuthPage() {
                   className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="text-xs font-medium text-muted-foreground">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
+              {mode !== "reset" && (
+                <div>
+                  <label htmlFor="password" className="text-xs font-medium text-muted-foreground">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+              )}
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("reset");
+                    setSent(false);
+                  }}
+                  className="text-xs font-medium text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+                >
+                  Forgot your password?
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={busy}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {busy && <Loader2 className="size-4 animate-spin" />}
-                {mode === "signin"
-                  ? "Sign in"
-                  : isOwner
-                    ? "Register organization"
-                    : "Create account"}
+                {mode === "reset"
+                  ? "Send reset link"
+                  : mode === "signin"
+                    ? "Sign in"
+                    : isOwner
+                      ? "Register organization"
+                      : "Create account"}
               </button>
             </form>
           )}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {mode === "signin" ? "New here?" : "Already have an account?"}{" "}
+            {mode === "reset"
+              ? "Remembered it?"
+              : mode === "signin"
+                ? "New here?"
+                : "Already have an account?"}{" "}
             <button
               onClick={() => {
                 setMode(mode === "signin" ? "signup" : "signin");
@@ -289,6 +342,7 @@ function AuthPage() {
               {mode === "signin" ? "Create an account" : "Sign in"}
             </button>
           </p>
+
 
           {!isStudent && (
             <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
