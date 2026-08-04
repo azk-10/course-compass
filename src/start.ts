@@ -24,10 +24,10 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 // from cross-site requests. Older @tanstack/react-start builds (which some
 // deploy hosts resolve to) do not export it, so resolve it defensively.
 const createCsrf = (
-  startCore as {
+  startCore as unknown as {
     createCsrfMiddleware?: (opts: {
       filter?: (ctx: { handlerType: string }) => boolean;
-    }) => ReturnType<typeof createMiddleware>;
+    }) => never;
   }
 ).createCsrfMiddleware;
 
