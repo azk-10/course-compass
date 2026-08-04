@@ -54,10 +54,26 @@ function CoursesHome() {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
   }, []);
 
-  const coursesQuery = useQuery({ queryKey: ["courses"], queryFn: fetchCourses });
+  const profileQuery = useQuery({ queryKey: ["my-profile"], queryFn: fetchMyProfile });
+  const profile = profileQuery.data ?? null;
+  const isPending = profile?.approval_status === "pending";
+  const isRejected = profile?.approval_status === "rejected";
+
+  const orgQuery = useQuery({
+    queryKey: ["owned-org"],
+    queryFn: fetchOwnedOrganization,
+    enabled: profile?.role === "owner",
+  });
+
+  const coursesQuery = useQuery({
+    queryKey: ["courses"],
+    queryFn: fetchCourses,
+    enabled: !!profile && !isPending && !isRejected,
+  });
   const courses = coursesQuery.data ?? [];
   const active = courses.filter((course) => course.status !== "archived");
   const archived = courses.filter((course) => course.status === "archived");
+
 
   const createMutation = useMutation({
     mutationFn: createCourse,
