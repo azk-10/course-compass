@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
+import { authErrorMessage, logAuthError, logAuthEvent } from "@/lib/auth-log";
 
 type Role = "teacher" | "student" | "owner";
 
