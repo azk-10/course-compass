@@ -47,20 +47,9 @@ const joinSchema = z.object({
 type Me = { id: string; email: string } | null;
 
 function StudentHome() {
-  const [me, setMe] = useState<Me>(null);
-  const [ready, setReady] = useState(false);
+  const { user, ready } = useSupabaseUser();
   const [courseId, setCourseId] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setMe(data.user ? { id: data.user.id, email: data.user.email ?? "" } : null);
-      setReady(true);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setMe(session?.user ? { id: session.user.id, email: session.user.email ?? "" } : null);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+  const me: Me = user ? { id: user.id, email: user.email ?? "" } : null;
 
   if (!ready) {
     return (
