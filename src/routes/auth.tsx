@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
+import { authErrorMessage, logAuthError, logAuthEvent } from "@/lib/auth-log";
 
 type Role = "teacher" | "student" | "owner";
 
@@ -88,7 +89,8 @@ function AuthPage() {
         setSent(true);
         toast.success("Password reset link sent.");
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Could not send the reset link");
+        logAuthError("password-reset-request", err);
+        toast.error(authErrorMessage(err, "Could not send the reset link"));
       } finally {
         setBusy(false);
       }
@@ -121,34 +123,42 @@ function AuthPage() {
         if (!data.session) {
           setSent(true);
           toast.success("Check your email to confirm your account.");
+          return;
         }
+        // Auto-confirm is on: the account is live, so land the user immediately.
+        logAuthEvent("signup", { confirmed: true, role });
+        const fallback = isStudent ? "/student" : "/courses";
+        await navigate({ to: await resolveLandingRoute(fallback), replace: true });
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         if (!data.session) throw new Error("Sign in completed without creating a session");
+        logAuthEvent("signin", { role });
         const fallback = isStudent ? "/student" : "/courses";
         const to = await resolveLandingRoute(fallback);
         await navigate({ to, replace: true });
       }
     } catch (err) {
-      if (err instanceof TypeError && err.message === "Failed to fetch") {
-        toast.error(
-          "Authentication could not reach the backend. Check this deployment's VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY build variables, then redeploy.",
-        );
-      } else {
-        toast.error(err instanceof Error ? err.message : "Something went wrong");
-      }
+      logAuthError(mode === "signup" ? "signup" : "signin", err);
+      toast.error(authErrorMessage(err));
     } finally {
       setBusy(false);
     }
   }
 
   async function handleGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed. Please try again.");
+    try {
+      // Must be a public same-origin URL — works on preview and on the deployed site.
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        logAuthError("google-oauth", result.error);
+        toast.error(authErrorMessage(result.error, "Google sign-in failed. Please try again."));
+      }
+    } catch (err) {
+      logAuthError("google-oauth", err);
+      toast.error(authErrorMessage(err, "Google sign-in failed. Please try again."));
     }
   }
 
