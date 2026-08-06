@@ -64,7 +64,7 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link to="/contact" className="transition-colors hover:text-foreground">
+              <Link to="/contact" search={{ plan: "teacher-pro" as const }} className="transition-colors hover:text-foreground">
                 Contact
               </Link>
             </li>
@@ -92,7 +92,7 @@ export function SiteFooter() {
           <p className="mt-4 text-sm text-muted-foreground">
             Sales enquiries go through our{" "}
             <Link
-              to="/contact"
+              to="/contact" search={{ plan: "teacher-pro" as const }}
               className="font-semibold text-foreground underline-offset-4 hover:underline"
             >
               contact form

@@ -65,7 +65,7 @@ function TermsPage() {
             <p className="mt-2 text-base/8 text-muted-foreground">
               Reach the team through the{" "}
               <Link
-                to="/contact"
+                to="/contact" search={{ plan: "teacher-pro" as const }}
                 className="font-semibold text-foreground underline-offset-4 hover:underline"
               >
                 contact form
