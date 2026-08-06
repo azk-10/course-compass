@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseUser } from "@/hooks/useSupabaseUser";
 import { StudentChat } from "@/components/student/StudentChat";
 import { DEFAULT_SETTINGS, fetchSettings } from "@/lib/settings";
 import {
