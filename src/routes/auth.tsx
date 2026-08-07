@@ -299,7 +299,7 @@ function AuthPage() {
                   </label>
                   <p className="mt-2 text-xs text-muted-foreground">
                     {independent
-                      ? "Independent teachers get full access straight away — no approval needed."
+                      ? "Independent teachers are reviewed by the Course Compass team before their account unlocks."
                       : "Type your school, college or academy exactly as you call it. Your account is approved before your courses unlock."}
                   </p>
                 </div>
