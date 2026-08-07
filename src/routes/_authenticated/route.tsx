@@ -12,8 +12,12 @@ export const Route = createFileRoute("/_authenticated")({
       if (error || !data.user) throw redirect({ to: "/auth", search: { role: "teacher" } });
       return { user: data.user };
     } catch (error) {
-      if (isRedirect(error)) throw error;
-      logAuthError("route-guard", error);
+      // Redirects travel as thrown values — never log or swallow them.
+      if (isRedirect(error) || error instanceof Response) throw error;
+      // A missing session is the ordinary signed-out case, not a failure.
+      const name = (error as { name?: string } | null)?.name;
+      if (name !== "AuthSessionMissingError") logAuthError("route-guard", error);
+
       throw redirect({ to: "/auth", search: { role: "teacher" } });
     }
   },
