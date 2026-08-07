@@ -27,6 +27,16 @@ import { RequestsPanel } from "@/components/owner/RequestsPanel";
 import { SettingsPanel } from "@/components/owner/SettingsPanel";
 
 export const Route = createFileRoute("/_authenticated/owner")({
+  // The parent gate already guarantees a session; this only decides *which*
+  // signed-in accounts may open the console. A non-owner never sees it.
+  beforeLoad: async () => {
+    const { fetchAccessRole, homeRouteFor } = await import("@/lib/use-owner");
+    const access = await fetchAccessRole();
+    if (!access.isOwner) {
+      throw redirect({ to: homeRouteFor(access, "/courses"), replace: true });
+    }
+    return { access };
+  },
   head: () =>
     pageMeta({
       title: "Owner console",
@@ -36,6 +46,7 @@ export const Route = createFileRoute("/_authenticated/owner")({
     }),
   component: OwnerConsole,
 });
+
 
 const SECTIONS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
