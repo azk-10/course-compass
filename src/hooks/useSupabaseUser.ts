@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
-import { logAuthError } from "@/lib/auth-log";
+import { logAuthError, logGetUserProbe } from "@/lib/auth-log";
 
 /**
  * Single place that restores and tracks the Supabase session in the browser.
@@ -19,6 +19,8 @@ export function useSupabaseUser() {
     supabase.auth
       .getUser()
       .then(({ data, error }) => {
+        // TEMPORARY: verbatim getUser result, to diagnose production-only failures.
+        logGetUserProbe("session-restore", { user: data?.user ?? null, error });
         if (!active) return;
         if (error && error.name !== "AuthSessionMissingError") {
           logAuthError("session-restore", error);

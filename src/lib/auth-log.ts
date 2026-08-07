@@ -36,6 +36,31 @@ export function logAuthError(stage: AuthStage, error: unknown) {
   });
 }
 
+/**
+ * TEMPORARY production probe: prints the verbatim result of `getUser()` so a
+ * deployment-only failure can be classified (missing build env vs unreachable
+ * backend vs invalid session). Remove once production auth is confirmed.
+ */
+export function logGetUserProbe(
+  where: string,
+  result: { user: unknown; error: unknown },
+) {
+  const err = result.error as { name?: string; message?: string; status?: number } | null;
+  console.info("[auth-probe] getUser", {
+    where,
+    userPresent: Boolean(result.user),
+    error: err
+      ? {
+          name: err.name,
+          message: err.message,
+          status: err.status,
+          raw: JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err))),
+        }
+      : null,
+    ...context(),
+  });
+}
+
 export function logAuthEvent(stage: AuthStage, detail?: Record<string, unknown>) {
   console.info("[auth]", stage, { ...detail, ...context() });
 }
