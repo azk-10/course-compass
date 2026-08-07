@@ -179,7 +179,7 @@ export function PendingApproval({
                 }}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {independent ? "Continue independently" : "Send request"}
+                {independent ? "Request review without an organization" : "Send request"}
               </button>
               <button
                 onClick={() => setSwitching(false)}
