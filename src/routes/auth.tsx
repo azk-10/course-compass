@@ -125,10 +125,15 @@ function AuthPage() {
           toast.success("Check your email to confirm your account.");
           return;
         }
-        // Auto-confirm is on: the account is live, so land the user immediately.
+        // Auto-confirm is on: teacher accounts still wait for approval, so send
+        // them to the subscription offers first; students go straight in.
         logAuthEvent("signup", { confirmed: true, role });
-        const fallback = isStudent ? "/student" : "/courses";
-        await navigate({ to: await resolveLandingRoute(fallback), replace: true });
+        if (isStudent) {
+          await navigate({ to: await resolveLandingRoute("/student"), replace: true });
+        } else {
+          toast.success("Account created — it's pending approval. Pick a plan to get set up.");
+          await navigate({ to: "/pricing", replace: true });
+        }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
