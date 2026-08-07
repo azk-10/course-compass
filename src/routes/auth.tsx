@@ -51,9 +51,14 @@ function AuthPage() {
 
   const needsOrgPicker = role === "teacher" && mode === "signup";
 
+  // Set while a fresh sign-up is being routed to the plans page, so the
+  // session listener below does not steal that navigation.
+  const signingUp = useRef(false);
+
   useEffect(() => {
     let active = true;
     const go = async () => {
+      if (signingUp.current) return;
       const fallback = isStudent ? "/student" : "/courses";
       const to = await resolveLandingRoute(fallback);
       if (active) await navigate({ to, replace: true });
