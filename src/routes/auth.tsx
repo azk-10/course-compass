@@ -111,6 +111,7 @@ function AuthPage() {
       return;
     }
     setBusy(true);
+    if (mode === "signup" && !isStudent) signingUp.current = true;
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
