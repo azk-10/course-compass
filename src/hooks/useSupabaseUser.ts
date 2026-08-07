@@ -19,6 +19,8 @@ export function useSupabaseUser() {
     supabase.auth
       .getUser()
       .then(({ data, error }) => {
+        // TEMPORARY: verbatim getUser result, to diagnose production-only failures.
+        logGetUserProbe("session-restore", { user: data?.user ?? null, error });
         if (!active) return;
         if (error && error.name !== "AuthSessionMissingError") {
           logAuthError("session-restore", error);
