@@ -11,6 +11,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 const selfHostPreset = process.env["NITRO_PRESET"] ?? (process.env["VERCEL"] ? "vercel" : "");
 
 export default defineConfig({
+  envPrefix: ["VITE_", "SUPABASE_"],
   ...(selfHostPreset ? { nitro: { preset: selfHostPreset } } : {}),
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).

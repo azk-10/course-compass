@@ -7,8 +7,24 @@
  * call sites degrade gracefully instead of crashing SSR or hydration.
  */
 
-const clientUrl = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
-const clientKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
+function getClientEnvValue(name: string): string | undefined {
+  const env = import.meta.env as Record<string, string | boolean | undefined>;
+  const direct = env[name];
+  if (typeof direct === "string" && direct.trim()) return direct;
+
+  const bare = name.replace(/^VITE_/, "");
+  const fallback = env[bare];
+  if (typeof fallback === "string" && fallback.trim()) return fallback;
+
+  return undefined;
+}
+
+export { getClientEnvValue };
+
+const clientUrl = getClientEnvValue("VITE_SUPABASE_URL") ?? getClientEnvValue("SUPABASE_URL");
+const clientKey =
+  getClientEnvValue("VITE_SUPABASE_PUBLISHABLE_KEY") ??
+  getClientEnvValue("SUPABASE_PUBLISHABLE_KEY");
 
 /** Variables the browser bundle needs, resolved at build time. */
 export function missingClientEnv(): string[] {
