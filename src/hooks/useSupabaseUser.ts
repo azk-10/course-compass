@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
-import { logAuthError } from "@/lib/auth-log";
+import { logAuthError, logGetUserProbe } from "@/lib/auth-log";
 
 /**
  * Single place that restores and tracks the Supabase session in the browser.
