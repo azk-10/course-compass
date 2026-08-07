@@ -118,7 +118,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/oauth/callback`,
             data: {
               role,
               ...(orgName.trim() && !independent ? { organization_name: orgName.trim() } : {}),
