@@ -73,7 +73,7 @@ export function PendingApproval({
   const leaveMutation = useMutation({
     mutationFn: leaveOrganization,
     onSuccess: () => {
-      toast.success("You are now an independent teacher.");
+      toast.success("Sent for review — you'll get access once it's approved.");
       refreshAll();
     },
     onError: () => toast.error("Could not update your account"),
