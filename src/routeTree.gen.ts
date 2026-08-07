@@ -22,6 +22,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedOwnerRouteImport } from './routes/_authenticated/owner'
+import { Route as OauthCallbackRouteImport } from './routes/oauth.callback'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
@@ -90,6 +91,11 @@ const AuthenticatedOwnerRoute = AuthenticatedOwnerRouteImport.update({
   path: '/owner',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth/callback',
+  path: '/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/admin/leads',
   path: '/admin/leads',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
   '/owner': typeof AuthenticatedOwnerRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
   '/owner': typeof AuthenticatedOwnerRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/student': typeof StudentRoute
   '/terms': typeof TermsRoute
   '/_authenticated/owner': typeof AuthenticatedOwnerRoute
+  '/oauth/callback': typeof OauthCallbackRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/student'
     | '/terms'
     | '/owner'
+    | '/oauth/callback'
     | '/admin/leads'
     | '/courses/$courseId'
     | '/courses/'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/student'
     | '/terms'
     | '/owner'
+    | '/oauth/callback'
     | '/admin/leads'
     | '/courses/$courseId'
     | '/courses'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/student'
     | '/terms'
     | '/_authenticated/owner'
+    | '/oauth/callback'
     | '/_authenticated/admin/leads'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/courses/'
@@ -229,6 +241,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   StudentRoute: typeof StudentRoute
   TermsRoute: typeof TermsRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOwnerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/oauth/callback': {
+      id: '/oauth/callback'
+      path: '/oauth/callback'
+      fullPath: '/oauth/callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/admin/leads'
@@ -378,6 +398,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   StudentRoute: StudentRoute,
   TermsRoute: TermsRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
