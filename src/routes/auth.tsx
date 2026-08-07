@@ -160,19 +160,25 @@ function AuthPage() {
 
   async function handleGoogle() {
     try {
-      // Must be a public same-origin URL — works on preview and on the deployed site.
+      // Must be a public same-origin URL — the callback page waits for the session
+      // and then routes by database role, so preview and production behave alike.
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}/oauth/callback`,
       });
       if (result.error) {
         logAuthError("google-oauth", result.error);
         toast.error(authErrorMessage(result.error, "Google sign-in failed. Please try again."));
+        return;
       }
+      if (result.redirected) return;
+      // Tokens came back in-page (preview iframe): land the user by role.
+      await navigate({ to: await resolveLandingRoute("/courses"), replace: true });
     } catch (err) {
       logAuthError("google-oauth", err);
       toast.error(authErrorMessage(err, "Google sign-in failed. Please try again."));
     }
   }
+
 
   const heading =
     mode === "reset"
