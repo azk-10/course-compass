@@ -228,14 +228,16 @@ function AuthPage() {
           <h2 className="font-display text-2xl font-semibold">{heading}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{sub}</p>
 
-          {mode === "signin" && (
+          {mode !== "reset" && (
             <button
+              type="button"
               onClick={handleGoogle}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:bg-secondary"
             >
               Continue with Google
             </button>
           )}
+
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
