@@ -48,11 +48,19 @@ const joinSchema = z.object({
 type Me = { id: string; email: string } | null;
 
 function StudentHome() {
+  const navigate = useNavigate();
   const { user, ready } = useSupabaseUser();
   const [courseId, setCourseId] = useState<string | null>(null);
   const me: Me = user ? { id: user.id, email: user.email ?? "" } : null;
 
-  if (!ready) {
+  // Protected surface: no student content ever renders without a session.
+  useEffect(() => {
+    if (ready && !user) {
+      void navigate({ to: "/auth", search: { role: "student" as const }, replace: true });
+    }
+  }, [ready, user, navigate]);
+
+  if (!ready || !me) {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -60,35 +68,10 @@ function StudentHome() {
     );
   }
 
-  if (!me) return <SignedOut />;
   if (courseId) return <CourseRoom me={me} courseId={courseId} onLeave={() => setCourseId(null)} />;
   return <Enrolment me={me} onEnter={setCourseId} />;
 }
 
-function SignedOut() {
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5">
-      <div className="panel space-y-4 p-8 text-center">
-        <GraduationCap className="mx-auto size-6 text-accent" />
-        <h1 className="font-display text-2xl font-semibold">Student sign in</h1>
-        <p className="text-sm text-muted-foreground">
-          Create a student account once — after that you stay signed in and go straight to your
-          courses.
-        </p>
-        <Link
-          to="/auth"
-          search={{ role: "student" }}
-          className="inline-flex w-full items-center justify-center rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground"
-        >
-          Continue
-        </Link>
-        <Link to="/" className="block text-xs text-muted-foreground hover:text-foreground">
-          Back home
-        </Link>
-      </div>
-    </main>
-  );
-}
 
 /* --------------------------------- enrolment -------------------------------- */
 
