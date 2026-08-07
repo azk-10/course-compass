@@ -63,17 +63,29 @@ function AuthPage() {
       const to = await resolveLandingRoute(fallback);
       if (active) await navigate({ to, replace: true });
     };
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (!error && data.session) void go();
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      // Supabase holds an internal auth lock while this callback runs. Deferring
-      // avoids deadlocking when resolveLandingRoute calls getUser/query methods.
-      if (session) window.setTimeout(() => void go(), 0);
-    });
+
+    // Must match the protected gate, which validates with getUser(). getSession()
+    // returns a cached token even when the refresh call failed, so a token the
+    // server rejects would bounce /auth -> /courses -> /auth forever.
+    const cleanup = safeSupabase(() => {
+      supabase.auth
+        .getUser()
+        .then(({ data, error }) => {
+          if (!error && data.user) void go();
+        })
+        .catch((error) => logAuthError("session-restore", error));
+
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        // Supabase holds an internal auth lock while this callback runs. Deferring
+        // avoids deadlocking when resolveLandingRoute calls getUser/query methods.
+        if (session) window.setTimeout(() => void go(), 0);
+      });
+      return () => sub.subscription.unsubscribe();
+    }, undefined);
+
     return () => {
       active = false;
-      sub.subscription.unsubscribe();
+      cleanup?.();
     };
   }, [navigate, isStudent]);
 
