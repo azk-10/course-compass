@@ -150,6 +150,7 @@ function AuthPage() {
         await navigate({ to, replace: true });
       }
     } catch (err) {
+      signingUp.current = false;
       logAuthError(mode === "signup" ? "signup" : "signin", err);
       toast.error(authErrorMessage(err));
     } finally {
