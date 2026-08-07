@@ -1,9 +1,19 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Hourglass, LogOut, RefreshCw, ShieldX, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  Hourglass,
+  LogOut,
+  RefreshCw,
+  ShieldX,
+  UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { OrganizationPicker } from "@/components/org/OrganizationPicker";
+import { PLANS } from "@/lib/plans";
 import {
   fetchOrganization,
   leaveOrganization,
@@ -40,7 +50,9 @@ export function PendingApproval({
     refetchInterval: rejected ? false : 15_000,
   });
 
-  const orgName = orgQuery.data?.name ?? "your organization";
+  const hasOrg = !!profile.organization_id;
+  const reviewer = hasOrg ? (orgQuery.data?.name ?? "your organization") : "the Course Compass team";
+  const orgName = reviewer;
 
   const refreshAll = () => {
     queryClient.invalidateQueries({ queryKey: ["my-profile"] });
@@ -61,7 +73,7 @@ export function PendingApproval({
   const leaveMutation = useMutation({
     mutationFn: leaveOrganization,
     onSuccess: () => {
-      toast.success("You are now an independent teacher.");
+      toast.success("Sent for review — you'll get access once it's approved.");
       refreshAll();
     },
     onError: () => toast.error("Could not update your account"),
@@ -90,27 +102,56 @@ export function PendingApproval({
             </h1>
             <p className="flex items-center gap-1.5 truncate text-xs text-muted-foreground">
               <Building2 className="size-3.5 shrink-0" />
-              {orgQuery.isLoading ? "Loading organization…" : orgName}
+              {hasOrg && orgQuery.isLoading ? "Loading organization…" : orgName}
             </p>
           </div>
         </div>
 
         <p className="mt-4 text-sm/6 text-muted-foreground">
           {rejected
-            ? `The owner of ${orgName} did not approve this account. Ask them to review it again, pick a different organization, or continue as an independent teacher.`
-            : `Your request to join ${orgName} was sent to its owner. As soon as they approve you, your courses and live sessions unlock here — this page checks automatically.`}
+            ? `${hasOrg ? `The owner of ${orgName}` : "The Course Compass team"} did not approve this account. Ask for another review, or pick a different organization.`
+            : `Your account request was sent to ${hasOrg ? `the owner of ${orgName}` : "the Course Compass team"}. Nothing unlocks until it is approved — courses and live sessions stay locked. This page checks automatically.`}
         </p>
 
         {!rejected && (
           <ol className="mt-6 space-y-3">
             <Step done label="Account created" detail={profile.email ?? "Your teacher account"} />
-            <Step done label="Request sent" detail={`Delivered to the owner of ${orgName}`} />
+            <Step done label="Request sent" detail={`Delivered to ${orgName}`} />
             <Step
-              label="Owner approval"
-              detail="Pending — you will get access the moment they approve"
+              label="Approval"
+              detail="Pending — you will get access the moment it is approved"
             />
           </ol>
         )}
+
+        <div className="mt-6 rounded-lg border border-border bg-secondary/40 p-4">
+          <p className="text-sm font-semibold">Pick your subscription while you wait</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Approval and a plan go together — tell us which one you want and we set it up the moment
+            your account is approved.
+          </p>
+          <div className="mt-3 grid gap-2">
+            {PLANS.map((plan) => (
+              <Link
+                key={plan.id}
+                to="/contact"
+                search={{ plan: plan.id }}
+                className="group flex items-center justify-between gap-3 rounded-lg border border-input bg-card px-3 py-2.5 text-sm transition-colors hover:bg-secondary"
+              >
+                <span className="min-w-0">
+                  <span className="block font-medium">{plan.name}</span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {plan.audience}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1 text-xs font-semibold">
+                  {plan.price}
+                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
 
         {switching ? (
           <div className="mt-6 rounded-lg border border-border p-4">
@@ -138,7 +179,7 @@ export function PendingApproval({
                 }}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
               >
-                {independent ? "Continue independently" : "Send request"}
+                {independent ? "Request review without an organization" : "Send request"}
               </button>
               <button
                 onClick={() => setSwitching(false)}

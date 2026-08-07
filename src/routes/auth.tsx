@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Compass, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -51,9 +51,14 @@ function AuthPage() {
 
   const needsOrgPicker = role === "teacher" && mode === "signup";
 
+  // Set while a fresh sign-up is being routed to the plans page, so the
+  // session listener below does not steal that navigation.
+  const signingUp = useRef(false);
+
   useEffect(() => {
     let active = true;
     const go = async () => {
+      if (signingUp.current) return;
       const fallback = isStudent ? "/student" : "/courses";
       const to = await resolveLandingRoute(fallback);
       if (active) await navigate({ to, replace: true });
@@ -106,6 +111,7 @@ function AuthPage() {
       return;
     }
     setBusy(true);
+    if (mode === "signup" && !isStudent) signingUp.current = true;
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
@@ -125,10 +131,15 @@ function AuthPage() {
           toast.success("Check your email to confirm your account.");
           return;
         }
-        // Auto-confirm is on: the account is live, so land the user immediately.
+        // Auto-confirm is on: teacher accounts still wait for approval, so send
+        // them to the subscription offers first; students go straight in.
         logAuthEvent("signup", { confirmed: true, role });
-        const fallback = isStudent ? "/student" : "/courses";
-        await navigate({ to: await resolveLandingRoute(fallback), replace: true });
+        if (isStudent) {
+          await navigate({ to: await resolveLandingRoute("/student"), replace: true });
+        } else {
+          toast.success("Account created — it's pending approval. Pick a plan to get set up.");
+          await navigate({ to: "/pricing", replace: true });
+        }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -139,6 +150,7 @@ function AuthPage() {
         await navigate({ to, replace: true });
       }
     } catch (err) {
+      signingUp.current = false;
       logAuthError(mode === "signup" ? "signup" : "signin", err);
       toast.error(authErrorMessage(err));
     } finally {
@@ -287,7 +299,7 @@ function AuthPage() {
                   </label>
                   <p className="mt-2 text-xs text-muted-foreground">
                     {independent
-                      ? "Independent teachers get full access straight away — no approval needed."
+                      ? "Independent teachers are reviewed by the Course Compass team before their account unlocks."
                       : "Type your school, college or academy exactly as you call it. Your account is approved before your courses unlock."}
                   </p>
                 </div>

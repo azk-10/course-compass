@@ -1245,6 +1245,7 @@ export type Database = {
         Returns: boolean
       }
       in_session: { Args: { _session: string }; Returns: boolean }
+      is_approved_teacher: { Args: { _user_id: string }; Returns: boolean }
       is_org_owner: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean

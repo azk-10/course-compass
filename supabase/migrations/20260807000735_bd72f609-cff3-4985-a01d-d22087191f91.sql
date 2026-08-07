@@ -1,0 +1,26 @@
+CREATE OR REPLACE FUNCTION public.guard_profile_approval()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  -- Owners and the service role bypass this guard entirely.
+  IF auth.uid() IS NULL OR auth.uid() <> NEW.id THEN
+    RETURN NEW;
+  END IF;
+
+  -- A user editing their own profile may never change their role.
+  NEW.role := OLD.role;
+
+  IF NEW.organization_id IS DISTINCT FROM OLD.organization_id THEN
+    -- Joining, switching or leaving an organization always needs approval again.
+    NEW.approval_status := 'pending';
+  ELSE
+    -- No self-approval: keep whatever the owner last decided.
+    NEW.approval_status := OLD.approval_status;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
