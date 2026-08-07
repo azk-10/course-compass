@@ -50,7 +50,9 @@ export function PendingApproval({
     refetchInterval: rejected ? false : 15_000,
   });
 
-  const orgName = orgQuery.data?.name ?? "your organization";
+  const hasOrg = !!profile.organization_id;
+  const reviewer = hasOrg ? (orgQuery.data?.name ?? "your organization") : "the Course Compass team";
+  const orgName = reviewer;
 
   const refreshAll = () => {
     queryClient.invalidateQueries({ queryKey: ["my-profile"] });
