@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -7,11 +7,21 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { pageMeta } from "@/lib/seo";
 import { toast } from "sonner";
 
-import { supabase } from "@/integrations/supabase/client";
+import { useIsPlatformAdmin } from "@/lib/use-owner";
 import { listLeads, updateLeadStatus, type Lead } from "@/lib/leads.functions";
 import { LEAD_STATUSES, LEAD_STATUS_LABEL, planName, type LeadStatus } from "@/lib/plans";
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
+  // Signed in is not enough: only platform staff (owner or admin role in the
+  // database) may open /admin. Everyone else goes back to their own home.
+  beforeLoad: async () => {
+    const { fetchAccessRole, homeRouteFor } = await import("@/lib/use-owner");
+    const access = await fetchAccessRole();
+    if (!access.isAdmin) {
+      throw redirect({ to: homeRouteFor(access, "/courses"), replace: true });
+    }
+    return { access };
+  },
   head: () =>
     pageMeta({
       title: "Sales leads",
@@ -28,21 +38,8 @@ function LeadsPage() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<"all" | LeadStatus>("all");
 
-  const isAdmin = useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return false;
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", auth.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (error) return false;
-      return Boolean(data);
-    },
-  });
+  const isAdmin = useIsPlatformAdmin();
+
 
   const leads = useQuery({
     queryKey: ["sales-leads"],
