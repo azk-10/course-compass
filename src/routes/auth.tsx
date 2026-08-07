@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveLandingRoute } from "@/lib/use-owner";
 import { lovable } from "@/integrations/lovable/index";
 import { authErrorMessage, logAuthError, logAuthEvent } from "@/lib/auth-log";
+import { safeSupabase } from "@/lib/env";
 
 type Role = "teacher" | "student" | "owner";
 
