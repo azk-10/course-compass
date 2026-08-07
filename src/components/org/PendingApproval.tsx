@@ -1,9 +1,19 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, Hourglass, LogOut, RefreshCw, ShieldX, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  Hourglass,
+  LogOut,
+  RefreshCw,
+  ShieldX,
+  UserRound,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { OrganizationPicker } from "@/components/org/OrganizationPicker";
+import { PLANS } from "@/lib/plans";
 import {
   fetchOrganization,
   leaveOrganization,
